@@ -6,6 +6,7 @@ import { sendVerificationEmail } from "@/lib/mail";
 import crypto from "crypto";
 import { ApiResponse } from "@/app/api/auth/sign-up/route";
 import { OTPType } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 /**
  * Handles generating and sending a new OTP.
@@ -149,6 +150,140 @@ export async function verifyEmailOTP(otp: string): Promise<ApiResponse> {
     return { success: true, message: "Email successfully verified!" };
   } catch (error) {
     console.error("[OTP_VERIFY_ERROR]", error);
+    return { success: false, message: "Internal server error." };
+  }
+}
+
+/**
+ * Handles requesting an OTP for password reset.
+ * SECURITY: Always returns success message to prevent user enumeration.
+ */
+export async function requestPasswordResetOTP(email: string): Promise<ApiResponse & { resendAvailableAt?: Date }> {
+  console.log("[SERVER ACTION] requestPasswordResetOTP =========== START ===========");
+  console.log("[SERVER ACTION] Email requested:", email);
+
+  try {
+    // 1. Check if user exists
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      console.log("[SERVER ACTION] User not found, but returning success for security");
+      return { 
+        success: true, 
+        message: "If an account with that email exists, a verification code has been sent." 
+      };
+    }
+
+    // 2. Check for existing OTP cooldown (60 seconds)
+    const existingOTP = await prisma.verificationOTP.findUnique({
+      where: {
+        email_type: { email, type: OTPType.PASSWORD_RESET },
+      },
+    });
+
+    if (existingOTP) {
+      const secondsSinceCreation = (Date.now() - existingOTP.createdAt.getTime()) / 1000;
+      if (secondsSinceCreation < 60) {
+        return {
+          success: false,
+          message: `Please wait ${Math.ceil(60 - secondsSinceCreation)}s before resending.`,
+          resendAvailableAt: new Date(existingOTP.createdAt.getTime() + 60000),
+        };
+      }
+    }
+
+    // 3. Generate a 6-digit numeric OTP
+    const otp = crypto.randomInt(100000, 999999).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // 4. Upsert into DB
+    await prisma.verificationOTP.upsert({
+      where: { email_type: { email, type: OTPType.PASSWORD_RESET } },
+      update: { otp, expiresAt, createdAt: new Date() },
+      create: { email, otp, expiresAt, type: OTPType.PASSWORD_RESET },
+    });
+
+    // 5. Send Email
+    const emailResult = await sendVerificationEmail(email, otp);
+    if (!emailResult.success) {
+      return { success: false, message: "Failed to send email. Try again later." };
+    }
+
+    console.log("[SERVER ACTION] Password reset OTP sent successfully");
+    return { 
+      success: true, 
+      message: "If an account with that email exists, a verification code has been sent.",
+      resendAvailableAt: new Date(Date.now() + 60000)
+    };
+  } catch (error) {
+    console.error("[PASSWORD_RESET_REQUEST_ERROR]", error);
+    return { success: false, message: "Internal server error." };
+  }
+}
+
+/**
+ * Verifies the password reset OTP without deleting it.
+ */
+export async function verifyPasswordResetOTP(email: string, otp: string): Promise<ApiResponse> {
+  console.log("[SERVER ACTION] verifyPasswordResetOTP START for:", email);
+  try {
+    const record = await prisma.verificationOTP.findUnique({
+      where: { email_type: { email, type: OTPType.PASSWORD_RESET } },
+    });
+
+    if (!record || record.otp !== otp) {
+      return { success: false, message: "Invalid verification code." };
+    }
+
+    if (new Date() > record.expiresAt) {
+      return { success: false, message: "Verification code has expired." };
+    }
+
+    return { success: true, message: "Code verified. Please set your new password." };
+  } catch (error) {
+    console.error("[PASSWORD_RESET_VERIFY_ERROR]", error);
+    return { success: false, message: "Internal server error." };
+  }
+}
+
+/**
+ * Executes the final password reset.
+ */
+export async function executePasswordReset(email: string, otp: string, password: string): Promise<ApiResponse> {
+  console.log("[SERVER ACTION] executePasswordReset START for:", email);
+  try {
+    // 1. Final verification of OTP
+    const record = await prisma.verificationOTP.findUnique({
+      where: { email_type: { email, type: OTPType.PASSWORD_RESET } },
+    });
+
+    if (!record || record.otp !== otp) {
+      return { success: false, message: "Invalid or expired verification session. Please restart." };
+    }
+
+    if (new Date() > record.expiresAt) {
+      return { success: false, message: "Verification code has expired. Please restart." };
+    }
+
+    // 2. Hash and Update
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { email },
+        data: { password: hashedPassword },
+      }),
+      prisma.verificationOTP.delete({
+        where: { id: record.id },
+      }),
+    ]);
+
+    console.log("[SERVER ACTION] Password reset SUCCESSFUL");
+    return { success: true, message: "Password has been reset successfully. Please sign in." };
+  } catch (error) {
+    console.error("[PASSWORD_RESET_EXECUTE_ERROR]", error);
     return { success: false, message: "Internal server error." };
   }
 }
