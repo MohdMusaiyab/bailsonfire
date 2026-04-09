@@ -1,0 +1,59 @@
+import { z } from "zod";
+export const MatchSchema = z.object({
+  id: z.string().cuid().optional(),
+  externalId: z.string(),
+  homeTeam: z.string().min(1, "Home team is required"),
+  awayTeam: z.string().min(1, "Away team is required"),
+  scoreSummary: z.string().min(1, "Score summary is required"),
+  matchDate: z.coerce.date(),
+  venue: z.string().min(1, "Venue is required"),
+  winner: z.string().nullish(),
+  loser: z.string().nullish(),
+  playerOfTheMatch: z.string().nullish(),
+  keyMoments: z.array(z.string()).default([]),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+});
+export const SummarySchema = z.object({
+  id: z.string().cuid().optional(),
+  matchId: z.string().cuid(),
+  content: z.string().min(1, "Content cannot be empty"),
+  aiModel: z.string().min(1, "AI Model identifier is required"),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+});
+export const CommentSchema = z.object({
+  id: z.string().cuid().optional(),
+  content: z
+    .string()
+    .min(1, "Comment cannot be empty")
+    .max(500, "Comment is too long"),
+  userId: z.string().cuid(),
+  matchId: z.string().cuid(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+});
+export const LikeSchema = z.object({
+  id: z.string().cuid().optional(),
+  userId: z.string().cuid(),
+  matchId: z.string().cuid(),
+  createdAt: z.date().optional(),
+});
+export const AIResponseMatchSchema = z.object({
+  homeTeam: z.string(),
+  awayTeam: z.string(),
+  finalScore: z.string(),
+  venue: z.string(),
+  winner: z.string().nullish(),
+  loser: z.string().nullish(),
+  playerOfTheMatch: z.string().nullish(),
+  keyMoments: z.array(z.string()).default([]),
+  matchDateString: z.string(),
+  roastContent: z.string(),
+});
+export const AIResponseArraySchema = z.array(AIResponseMatchSchema);
+export type MatchPayload = z.infer<typeof MatchSchema>;
+export type SummaryPayload = z.infer<typeof SummarySchema>;
+export type CommentPayload = z.infer<typeof CommentSchema>;
+export type LikePayload = z.infer<typeof LikeSchema>;
+export type AIResponseMatchPayload = z.infer<typeof AIResponseMatchSchema>;
