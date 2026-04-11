@@ -39,19 +39,24 @@ export const LikeSchema = z.object({
   matchId: z.string().cuid(),
   createdAt: z.date().optional(),
 });
-export const AIResponseMatchSchema = z.object({
-  homeTeam: z.string(),
-  awayTeam: z.string(),
-  finalScore: z.string(),
-  venue: z.string(),
-  winner: z.string().nullish(),
-  loser: z.string().nullish(),
-  playerOfTheMatch: z.string().nullish(),
-  keyMoments: z.array(z.string()).default([]),
-  matchDateString: z.string(),
-  roastContent: z.string(),
-});
-export const AIResponseArraySchema = z.array(AIResponseMatchSchema);
+export const AIResponseMatchSchema = z.discriminatedUnion("matchFound", [
+  z.object({
+    matchFound: z.literal(false),
+  }),
+  z.object({
+    matchFound: z.literal(true),
+    homeTeam: z.string(),
+    awayTeam: z.string(),
+    scoreSummary: z.string(),
+    venue: z.string(),
+    winner: z.string().nullish(),
+    loser: z.string().nullish(),
+    playerOfTheMatch: z.string().nullish(),
+    keyMoments: z.array(z.string()).default([]),
+    matchDate: z.string(),
+    externalId: z.string(),
+  })
+]);
 export type MatchPayload = z.infer<typeof MatchSchema>;
 export type SummaryPayload = z.infer<typeof SummarySchema>;
 export type CommentPayload = z.infer<typeof CommentSchema>;
