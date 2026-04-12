@@ -35,10 +35,9 @@ async function testExtraction() {
 
     console.log("\n[2] VALIDATED DATA (ZOD SUCCESS):");
     console.log(`Match: ${validatedData.homeTeam} vs ${validatedData.awayTeam}`);
-    console.log(`Summary: ${validatedData.scoreSummary}`);
-    
     // Simulate DB Check Deduplication here...
-    console.log(`\n(Simulated DB check for externalId: ${validatedData.externalId}... new match found!)`);
+    const externalId = `${validatedData.homeTeamShort}_${validatedData.awayTeamShort}_${validatedData.matchDate.split("T")[0]}`;
+    console.log(`\n(Simulated DB check for externalId generated: ${externalId}... new match found!)`);
 
     // Stage 2: Generate Roast based on facts
     const roast = await generateMatchRoast(validatedData);

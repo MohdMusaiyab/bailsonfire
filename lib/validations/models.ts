@@ -47,14 +47,13 @@ export const AIResponseMatchSchema = z.discriminatedUnion("matchFound", [
     matchFound: z.literal(true),
     homeTeam: z.string(),
     awayTeam: z.string(),
+    homeTeamShort: z.string(),
+    awayTeamShort: z.string(),
     scoreSummary: z.string(),
     venue: z.string(),
     winner: z.string().nullish(),
     loser: z.string().nullish(),
-    playerOfTheMatch: z.string().nullish(),
-    keyMoments: z.array(z.string()).default([]),
     matchDate: z.string(),
-    externalId: z.string(),
   })
 ]);
 export type MatchPayload = z.infer<typeof MatchSchema>;

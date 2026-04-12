@@ -19,24 +19,27 @@ export const roastModel = genAI.getGenerativeModel({
 
 const DATA_FETCH_PROMPT = `
 You are a cricket data extraction agent.
-Search for the most recent completed IPL match (within the last 24 hours).
+Search ONLY for a 100% COMPLETED and FINISHED IPL match (within the last 24 hours).
+
+CRITICAL RULE: If a match is currently ongoing, live, or interrupted by rain and not officially concluded, you MUST ignore it. Only process matches where the final ball has been bowled and the official winner is declared.
+
 Return ONLY a JSON object with this exact schema:
 
 {
   "matchFound": boolean,
   "homeTeam": "string",
   "awayTeam": "string",
+  "homeTeamShort": "string", // (e.g., "RCB", "CSK", "PBKS")
+  "awayTeamShort": "string", // (e.g., "KKR", "MI", "RR")
   "scoreSummary": "string", // (e.g., "CSK 180/4 beat RCB 178/8")
   "venue": "string",
   "winner": "string",
   "loser": "string",
-  "playerOfTheMatch": "string",
-  "keyMoments": ["string", "string"], // (at least 2 specific match events)
-  "matchDate": "ISO8601 Date String",
-  "externalId": "string" // (unique identifier e.g. "RCB_vs_KKR_2026-04-05")
+  "matchDate": "ISO8601 Date String" // (e.g., "2026-04-12T00:00:00.000Z")
 }
 
-If no completed match found in last 24 hours, return { "matchFound": false }.
+IMPORTANT: Do NOT include ANY individual player names or personal performances (no "player of the match", no runs scored by individuals).
+If no 100% completed match is found in the last 24 hours (or if the only match is still live/ongoing), respond strictly with: {"matchFound": false}
 `;
 
 export async function fetchRecentMatchData(): Promise<AIResponseMatchPayload> {
@@ -54,7 +57,18 @@ export async function fetchRecentMatchData(): Promise<AIResponseMatchPayload> {
       responseText = responseText.split("```")[1].split("```")[0];
   }
 
-  return JSON.parse(responseText.trim());
+  try {
+    return JSON.parse(responseText.trim());
+  } catch (parseError) {
+    // Fallback: extract the JSON object via regex if there's conversational filler
+    const match = responseText.match(/\{[\s\S]*\}/);
+    if (match) {
+        try { return JSON.parse(match[0]); } catch (e) { }
+    }
+    // If we absolutely cannot parse it, treat it as no match safely
+    console.warn("[GEMINI_WARN] Returning fallback `{ matchFound: false }` due to unparseable response:", responseText);
+    return { matchFound: false } as any; 
+  }
 }
 
 const ROAST_PROMPT = `
@@ -66,7 +80,7 @@ Based on the provided match data, write a devastatingly sarcastic post-match sum
 STRICT STYLE GUIDELINES:
 1. LANGUAGE: Use PURE, sophisticated English. Employ high-level vocabulary to mock the absurdity of the performance (e.g., "shambolic," "existential crisis," "pedestrian," "unintentional comedy").
 2. THE TONE: Deadpan, condescending, and hyper-sarcastic. You aren't angry; you are "intellectually offended" by the lack of competence shown on the field.
-3. THE CRITIQUE: Focus on the gap between professional expectations and the actual display. Reference specific player names and their specific failures (expensive overs, slow strike rates, or comical fielding). 
+3. THE CRITIQUE: Focus STRICTLY on the overall TEAM performance and the gap between professional expectations and their actual display. Do NOT mention individual players, their names, or personal performances. Criticize the team as a whole entity.
 4. THE "SALARY" ANGLE: Occasionally contrast their massive professional standing with their "amateur-hour" output. 
 5. NO TOXICITY: Avoid personal insults or hate speech. The sarcasm must stay strictly within the realm of "sporting failure."
 
