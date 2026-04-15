@@ -1,7 +1,9 @@
-import React from "react";
+import { RecentMatches } from '@/components/general/RecentMatches';
 
-const page = () => {
-  return <div>page</div>;
-};
-
-export default page;
+export default function HomePage() {
+  return (
+    <main>
+      <RecentMatches />
+    </main>
+  );
+}

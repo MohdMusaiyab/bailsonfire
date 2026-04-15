@@ -61,3 +61,33 @@ export type SummaryPayload = z.infer<typeof SummarySchema>;
 export type CommentPayload = z.infer<typeof CommentSchema>;
 export type LikePayload = z.infer<typeof LikeSchema>;
 export type AIResponseMatchPayload = z.infer<typeof AIResponseMatchSchema>;
+
+// ---------------------------------------------------------------------------
+// UI-facing derived types — used by server actions and components.
+// These represent exactly what the DB query returns; nothing more.
+// ---------------------------------------------------------------------------
+
+/** One summary preview attached to a match card (first summary only). */
+export type SummaryPreview = {
+  id: string;
+  content: string; // full roast — truncated in the UI if needed
+};
+
+/**
+ * Shape returned by `getRecentMatches` server action.
+ * Represents a single match card on the home page.
+ */
+export type RecentMatchCard = {
+  id: string;
+  externalId: string;
+  homeTeam: string;
+  awayTeam: string;
+  scoreSummary: string;
+  matchDate: Date;
+  venue: string;
+  winner: string | null;
+  loser: string | null;
+  likesCount: number;
+  commentsCount: number;
+  summary: SummaryPreview | null; // null if roast not yet generated
+};

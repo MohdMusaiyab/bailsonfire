@@ -1,99 +1,427 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+/**
+ * lib/ai/gemini.ts
+ *
+ * AI client using the official @google/genai SDK.
+ *
+ * Stage 1 — fetchRecentMatchData:
+ *   Uses Google Search grounding to find the latest completed IPL match
+ *   within the last 48 hours, relative to the current IST time.
+ *   Returns a validated, typed `AIResponseMatchPayload`.
+ *
+ * Stage 2 — generateMatchRoast:
+ *   Takes structured match data and produces a sarcastic roast summary.
+ *   Does NOT use search grounding (facts are already known).
+ */
+
+import { GoogleGenAI, type GenerateContentResponse } from "@google/genai";
 import { type AIResponseMatchPayload } from "../validations/models.js";
 
+// ---------------------------------------------------------------------------
+// Client setup
+// ---------------------------------------------------------------------------
+
 if (!process.env.GEMINI_API_KEY) {
-  throw new Error("Missing GEMINI_API_KEY in environment variables.");
+  throw new Error(
+    "[GEMINI] Missing GEMINI_API_KEY — set it in your .env file."
+  );
 }
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-export const roastModel = genAI.getGenerativeModel({
-  model: "gemini-2.5-flash-lite",
-  tools: [
-    {
-      // @ts-expect-error - Google Search tool syntax for the @google/generative-ai SDK
-      googleSearch: {},
-    },
-  ],
-});
+// Use a model with Google Search grounding support for data fetch.
+// Roast generation does not need search; use the lighter model to save tokens.
+const FETCH_MODEL = "gemini-2.5-flash";
+const ROAST_MODEL = "gemini-2.5-flash-lite";
 
-const DATA_FETCH_PROMPT = `
-You are a cricket data extraction agent.
-Search ONLY for a 100% COMPLETED and FINISHED IPL match (within the last 24 hours).
+// ---------------------------------------------------------------------------
+// Retry configuration
+// ---------------------------------------------------------------------------
 
-CRITICAL RULE: If a match is currently ongoing, live, or interrupted by rain and not officially concluded, you MUST ignore it. Only process matches where the final ball has been bowled and the official winner is declared.
+const MAX_RETRIES = 3;
+const BASE_RETRY_DELAY_MS = 2000; // doubles each attempt: 2s → 4s → 8s
 
-Return ONLY a JSON object with this exact schema:
+// ---------------------------------------------------------------------------
+// IST context helper
+// ---------------------------------------------------------------------------
 
-{
-  "matchFound": boolean,
-  "homeTeam": "string",
-  "awayTeam": "string",
-  "homeTeamShort": "string", // (e.g., "RCB", "CSK", "PBKS")
-  "awayTeamShort": "string", // (e.g., "KKR", "MI", "RR")
-  "scoreSummary": "string", // (e.g., "CSK 180/4 beat RCB 178/8")
-  "venue": "string",
-  "winner": "string",
-  "loser": "string",
-  "matchDate": "ISO8601 Date String" // (e.g., "2026-04-12T00:00:00.000Z")
-}
+/**
+ * Returns a human-readable IST timestamp string injected into the prompt.
+ * This is critical: without it, Gemini may use UTC and produce an off-by-one
+ * date error near the IST midnight crossover (12:30 AM IST = 7 PM UTC prev day).
+ */
+function buildISTContext(): string {
+  const now = new Date();
 
-IMPORTANT: Do NOT include ANY individual player names or personal performances (no "player of the match", no runs scored by individuals).
-If no 100% completed match is found in the last 24 hours (or if the only match is still live/ongoing), respond strictly with: {"matchFound": false}
-`;
-
-export async function fetchRecentMatchData(): Promise<AIResponseMatchPayload> {
-  console.log("[GEMINI] Fetching recent IPL match data...");
-  const result = await roastModel.generateContent({
-    contents: [{ role: "user", parts: [{ text: DATA_FETCH_PROMPT }] }]
+  const humanReadable = now.toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
   });
 
-  let responseText = result.response.text();
-  
-  // Clean markdown if present
-  if (responseText.includes("```json")) {
-      responseText = responseText.split("```json")[1].split("```")[0];
-  } else if (responseText.includes("```")) {
-      responseText = responseText.split("```")[1].split("```")[0];
+  // YYYY-MM-DD in IST (used as a reference anchor for the model)
+  const dateIST = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
+
+  return `${humanReadable} [${dateIST} IST]`;
+}
+
+// ---------------------------------------------------------------------------
+// Prompt builder
+// ---------------------------------------------------------------------------
+
+function buildDataFetchPrompt(): string {
+  const istContext = buildISTContext();
+
+  return `
+You are a cricket data extraction agent with access to Google Search.
+
+=== CURRENT TIME (ALWAYS USE THIS FOR DATE REASONING) ===
+${istContext}
+All dates and times MUST be calculated relative to the IST time above.
+Do NOT use UTC. IST is UTC+5:30.
+
+=== YOUR TASK ===
+Search Google for the most recently COMPLETED IPL 2026 match played within
+the last 48 hours (relative to the IST time above).
+
+=== STRICT RULES ===
+1. ONLY return a match that is 100% FINISHED:
+   - The final ball of the last over has been bowled.
+   - The official winner has been declared.
+2. IGNORE matches that are:
+   - Currently LIVE or ONGOING.
+   - INTERRUPTED (rain, DLS method pending, etc.) with no final result yet.
+   - Scheduled in the FUTURE.
+3. The "matchDate" field MUST be the calendar date in IST on which the
+   match was played, formatted exactly as: "YYYY-MM-DDT00:00:00.000Z".
+   Example: A match played on 15 April 2026 IST → "2026-04-15T00:00:00.000Z"
+4. Do NOT include individual player names, "Player of the Match" details,
+   or individual batting/bowling figures.
+5. If no completed match exists within the last 48 hours → return the
+   fallback below, nothing else.
+
+=== OUTPUT FORMAT ===
+Return ONLY a valid JSON object. Absolutely NO markdown formatting,
+NO code blocks (no \`\`\`), NO explanatory text — pure raw JSON only.
+
+If a completed match was found:
+{
+  "matchFound": true,
+  "homeTeam": "Full official team name (e.g., Royal Challengers Bengaluru)",
+  "awayTeam": "Full official team name (e.g., Mumbai Indians)",
+  "homeTeamShort": "Abbreviation (e.g., RCB)",
+  "awayTeamShort": "Abbreviation (e.g., MI)",
+  "scoreSummary": "e.g., RCB 187/4 (20 ov) beat MI 183/6 (20 ov) by 4 runs",
+  "venue": "Full stadium and city (e.g., M. Chinnaswamy Stadium, Bengaluru)",
+  "winner": "Full name of the winning team",
+  "loser": "Full name of the losing team",
+  "matchDate": "YYYY-MM-DDT00:00:00.000Z"
+}
+
+If NO completed match was found in the last 48 hours:
+{"matchFound": false}
+`.trim();
+}
+
+// ---------------------------------------------------------------------------
+// Response parsing utilities
+// ---------------------------------------------------------------------------
+
+/**
+ * Strips markdown code fences that Gemini sometimes wraps around JSON,
+ * then extracts the first JSON object found in the text.
+ * Throws if no valid JSON object can be isolated.
+ */
+function extractJSONString(raw: string): string {
+  let text = raw.trim();
+
+  // Strip ```json ... ``` or ``` ... ```
+  if (text.startsWith("```")) {
+    const firstNewline = text.indexOf("\n");
+    text = firstNewline !== -1 ? text.slice(firstNewline + 1) : text.slice(3);
+  }
+  if (text.endsWith("```")) {
+    text = text.slice(0, -3).trimEnd();
+  }
+  text = text.trim();
+
+  // Attempt to pull out the first JSON object (handles trailing prose)
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    return jsonMatch[0];
   }
 
+  throw new Error(
+    `No JSON object found in model response. Raw (first 400 chars): ${raw.slice(0, 400)}`
+  );
+}
+
+/**
+ * Parses the raw model text into a typed `AIResponseMatchPayload`.
+ * Performs field-level validation so callers never receive junk data.
+ * Throws descriptive errors for any structural issue — the retry loop
+ * will catch these and try again.
+ */
+function parseMatchPayload(raw: string): AIResponseMatchPayload {
+  const jsonString = extractJSONString(raw);
+
+  let parsed: unknown;
   try {
-    return JSON.parse(responseText.trim());
-  } catch (parseError) {
-    // Fallback: extract the JSON object via regex if there's conversational filler
-    const match = responseText.match(/\{[\s\S]*\}/);
-    if (match) {
-        try { return JSON.parse(match[0]); } catch (e) { }
+    parsed = JSON.parse(jsonString);
+  } catch (cause) {
+    throw new Error(
+      `JSON.parse failed. Extracted string: ${jsonString.slice(0, 400)}`,
+      { cause }
+    );
+  }
+
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    throw new Error(`Parsed value is not a plain object: ${typeof parsed}`);
+  }
+
+  const obj = parsed as Record<string, unknown>;
+
+  // Handle the "no match" case first
+  if (obj["matchFound"] === false) {
+    return { matchFound: false };
+  }
+
+  if (obj["matchFound"] !== true) {
+    throw new Error(
+      `Unexpected "matchFound" value: ${JSON.stringify(obj["matchFound"])}. ` +
+        `Expected true or false.`
+    );
+  }
+
+  // Validate all required string fields
+  const requiredFields = [
+    "homeTeam",
+    "awayTeam",
+    "homeTeamShort",
+    "awayTeamShort",
+    "scoreSummary",
+    "venue",
+    "matchDate",
+  ] as const;
+
+  for (const field of requiredFields) {
+    const value = obj[field];
+    if (typeof value !== "string" || value.trim() === "") {
+      throw new Error(
+        `Field "${field}" is missing or empty. Got: ${JSON.stringify(value)}`
+      );
     }
-    // If we absolutely cannot parse it, treat it as no match safely
-    console.warn("[GEMINI_WARN] Returning fallback `{ matchFound: false }` due to unparseable response:", responseText);
-    return { matchFound: false } as any; 
+  }
+
+  // Validate matchDate is a plausible ISO 8601 date string
+  const matchDate = obj["matchDate"] as string;
+  if (!/^\d{4}-\d{2}-\d{2}T/.test(matchDate)) {
+    throw new Error(
+      `Field "matchDate" does not look like an ISO 8601 date: "${matchDate}"`
+    );
+  }
+
+  return {
+    matchFound: true,
+    homeTeam: obj["homeTeam"] as string,
+    awayTeam: obj["awayTeam"] as string,
+    homeTeamShort: obj["homeTeamShort"] as string,
+    awayTeamShort: obj["awayTeamShort"] as string,
+    scoreSummary: obj["scoreSummary"] as string,
+    venue: obj["venue"] as string,
+    winner: typeof obj["winner"] === "string" ? obj["winner"] : null,
+    loser: typeof obj["loser"] === "string" ? obj["loser"] : null,
+    matchDate,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Grounding metadata logger
+// ---------------------------------------------------------------------------
+
+/**
+ * Logs the Google Search queries and sources Gemini actually used.
+ * Helps with debugging — when you run test-ai.ts you can see exactly
+ * what it searched for and which pages it cited.
+ */
+function logGroundingMetadata(response: GenerateContentResponse): void {
+  const candidate = response.candidates?.[0];
+  const meta = candidate?.groundingMetadata;
+
+  if (!meta) {
+    console.warn(
+      "[GEMINI] ⚠️  No grounding metadata found — " +
+        "response may not have used Google Search."
+    );
+    return;
+  }
+
+  const queries = meta.webSearchQueries;
+  if (queries && queries.length > 0) {
+    console.log("[GEMINI] 🔎 Google Search queries used by the model:");
+    queries.forEach((q, i) => console.log(`         ${i + 1}. "${q}"`));
+  }
+
+  const chunks = meta.groundingChunks;
+  if (chunks && chunks.length > 0) {
+    console.log(
+      `[GEMINI] 📄 Grounded against ${chunks.length} source(s):`
+    );
+    chunks.slice(0, 5).forEach((chunk, i) => {
+      const web = chunk.web;
+      if (web?.uri) {
+        console.log(`         ${i + 1}. ${web.title ?? "Untitled"} → ${web.uri}`);
+      }
+    });
   }
 }
+
+// ---------------------------------------------------------------------------
+// Sleep helper
+// ---------------------------------------------------------------------------
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// ---------------------------------------------------------------------------
+// Stage 1: Fetch match data (exported)
+// ---------------------------------------------------------------------------
+
+/**
+ * Calls Gemini with Google Search grounding to find the most recently
+ * completed IPL match within the last 48 hours (IST-relative).
+ *
+ * Retries up to MAX_RETRIES times with exponential backoff if the model
+ * returns an unparseable or structurally invalid response.
+ *
+ * @returns A typed `AIResponseMatchPayload` — always `{ matchFound: false }`
+ *          or a fully-populated match object. Never throws unexpectedly.
+ */
+export async function fetchRecentMatchData(): Promise<AIResponseMatchPayload> {
+  const prompt = buildDataFetchPrompt();
+  let lastError: Error = new Error("No attempts made.");
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    console.log(
+      `\n[GEMINI] ── Attempt ${attempt}/${MAX_RETRIES}: fetching IPL match data ──`
+    );
+
+    try {
+      const response = await ai.models.generateContent({
+        model: FETCH_MODEL,
+        contents: prompt,
+        config: {
+          // Google Search grounding — gives the model live web access
+          tools: [{ googleSearch: {} }],
+          // temperature 1.0 is recommended by Google for grounded responses
+          temperature: 1.0,
+        },
+      });
+
+      // Always log what was searched and which sources were used
+      logGroundingMetadata(response);
+
+      const rawText = response.text;
+
+      if (!rawText || rawText.trim() === "") {
+        throw new Error("Model returned an empty response body.");
+      }
+
+      console.log("[GEMINI] Raw text received (first 500 chars):");
+      console.log("         " + rawText.slice(0, 500).replace(/\n/g, "\n         "));
+
+      const payload = parseMatchPayload(rawText);
+
+      if (payload.matchFound) {
+        console.log(
+          `[GEMINI] ✅ Match extracted: ${payload.homeTeam} vs ${payload.awayTeam} ` +
+            `on ${payload.matchDate}`
+        );
+      } else {
+        console.log(
+          "[GEMINI] ✅ Model confirmed: no completed match in the last 48 hours."
+        );
+      }
+
+      return payload;
+    } catch (err: unknown) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+      console.error(`[GEMINI] ❌ Attempt ${attempt} failed: ${lastError.message}`);
+
+      if (attempt < MAX_RETRIES) {
+        const delay = BASE_RETRY_DELAY_MS * attempt; // 2s, 4s, 6s
+        console.log(`[GEMINI] ⏳ Retrying in ${delay / 1000}s...`);
+        await sleep(delay);
+      }
+    }
+  }
+
+  throw new Error(
+    `[GEMINI] All ${MAX_RETRIES} attempts exhausted. ` +
+      `Last error: ${lastError.message}`
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Stage 2: Generate roast (exported — uses lighter model, no search needed)
+// ---------------------------------------------------------------------------
 
 const ROAST_PROMPT = `
-You are a world-class, cynical sports columnist known for your dry, razor-sharp wit and absolute lack of empathy for sporting mediocrity. 
+You are a world-class, cynical sports columnist known for your dry,
+razor-sharp wit and absolute lack of empathy for sporting mediocrity.
 
 TASK:
-Based on the provided match data, write a devastatingly sarcastic post-match summary (150-200 words).
+Based on the provided match data, write a devastatingly sarcastic
+post-match summary (150-200 words).
 
 STRICT STYLE GUIDELINES:
-1. LANGUAGE: Use PURE, sophisticated English. Employ high-level vocabulary to mock the absurdity of the performance (e.g., "shambolic," "existential crisis," "pedestrian," "unintentional comedy").
-2. THE TONE: Deadpan, condescending, and hyper-sarcastic. You aren't angry; you are "intellectually offended" by the lack of competence shown on the field.
-3. THE CRITIQUE: Focus STRICTLY on the overall TEAM performance and the gap between professional expectations and their actual display. Do NOT mention individual players, their names, or personal performances. Criticize the team as a whole entity.
-4. THE "SALARY" ANGLE: Occasionally contrast their massive professional standing with their "amateur-hour" output. 
-5. NO TOXICITY: Avoid personal insults or hate speech. The sarcasm must stay strictly within the realm of "sporting failure."
+1. LANGUAGE: Use PURE, sophisticated English. Employ high-level vocabulary
+   to mock the absurdity of the performance (e.g., "shambolic,"
+   "existential crisis," "pedestrian," "unintentional comedy").
+2. THE TONE: Deadpan, condescending, and hyper-sarcastic. You aren't angry;
+   you are "intellectually offended" by the lack of competence on show.
+3. THE CRITIQUE: Focus STRICTLY on overall TEAM performance. Do NOT mention
+   individual players, names, or personal statistics.
+4. THE "SALARY" ANGLE: Occasionally contrast their massive professional
+   standing with their "amateur-hour" output.
+5. NO TOXICITY: Sarcasm must stay within the realm of "sporting failure."
 
 OUTPUT: Plain text only. No emojis, no hashtags, no slang.
-`;
+`.trim();
 
-export async function generateMatchRoast(matchData: Extract<AIResponseMatchPayload, { matchFound: true }>) {
-  console.log(`[GEMINI] Generating roast for ${matchData.homeTeam} vs ${matchData.awayTeam}...`);
-  const result = await roastModel.generateContent({
-    contents: [
-      { role: "user", parts: [{ text: ROAST_PROMPT + "\n\nMatch Data:\n" + JSON.stringify(matchData) }] }
-    ],
+/**
+ * Given fully-validated match data, generates a roast summary.
+ * Uses the lighter model since no web grounding is required here.
+ */
+export async function generateMatchRoast(
+  matchData: Extract<AIResponseMatchPayload, { matchFound: true }>
+): Promise<string> {
+  console.log(
+    `\n[GEMINI] Generating roast for ${matchData.homeTeam} vs ${matchData.awayTeam}...`
+  );
+
+  const response = await ai.models.generateContent({
+    model: ROAST_MODEL,
+    contents: `${ROAST_PROMPT}\n\nMatch Data:\n${JSON.stringify(matchData, null, 2)}`,
+    config: {
+      temperature: 1.2,
+    },
   });
 
-  return result.response.text().trim();
+  const text = response.text;
+  if (!text || text.trim() === "") {
+    throw new Error("[GEMINI] Roast model returned an empty response.");
+  }
+
+  return text.trim();
 }
