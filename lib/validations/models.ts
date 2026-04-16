@@ -91,3 +91,43 @@ export type RecentMatchCard = {
   commentsCount: number;
   summary: SummaryPreview | null; // null if roast not yet generated
 };
+
+/** Full match detail — used by the roast page. */
+export type MatchDetail = {
+  id: string;
+  externalId: string;
+  homeTeam: string;
+  awayTeam: string;
+  scoreSummary: string;
+  matchDate: Date;
+  venue: string;
+  winner: string | null;
+  loser: string | null;
+  likesCount: number;
+  commentsCount: number;
+  summary: {
+    id: string;
+    content: string;
+    aiModel: string;
+  } | null;
+};
+
+/** A single comment row, including the author's display name. */
+export type CommentItem = {
+  id: string;
+  content: string;
+  createdAt: Date;
+  user: {
+    id: string;
+    name: string | null;
+    image: string | null;
+  };
+};
+
+/** Paginated comments page returned by getComments. */
+export type CommentsPage = {
+  items: CommentItem[];
+  /** Pass as cursor on the next call. Null if no more pages. */
+  nextCursor: string | null;
+};
+
