@@ -1,0 +1,85 @@
+import React, { Suspense } from "react";
+import { notFound } from "next/navigation";
+import { type Metadata } from "next";
+import { getMatchesBySeason } from "@/lib/actions/matches";
+import { TeamFilter } from "@/components/matches/TeamFilter";
+import { InfiniteMatchGrid } from "@/components/matches/InfiniteMatchGrid";
+
+interface PageProps {
+  params: Promise<{ year: string }>;
+  searchParams: Promise<{ team?: string | string[] }>;
+}
+
+const TEAM_MAP: Record<string, string> = {
+  "mi": "Mumbai Indians",
+  "csk": "Chennai Super Kings",
+  "rcb": "Royal Challengers Bengaluru",
+  "kkr": "Kolkata Knight Riders",
+  "dc": "Delhi Capitals",
+  "srh": "Sunrisers Hyderabad",
+  "rr": "Rajasthan Royals",
+  "pbks": "Punjab Kings",
+  "lsg": "Lucknow Super Giants",
+  "gt": "Gujarat Titans",
+};
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { year } = await params;
+  return {
+    title: `IPL ${year} - All Match Roasts | BailsOnFire`,
+    description: `Explore all match roasts and highlights from the IPL ${year} season.`,
+  };
+}
+
+export default async function SeasonalMatchesPage({ params, searchParams }: PageProps) {
+  const { year } = await params;
+  const sParams = await searchParams;
+  
+  const yearNum = parseInt(year);
+  if (isNaN(yearNum)) notFound();
+
+  // Normalize selected teams to an array
+  const rawTeams = sParams.team;
+  const selectedTeams = Array.isArray(rawTeams) ? rawTeams : rawTeams ? [rawTeams] : [];
+  
+  // Map shortnames to full names for Prisma
+  const fullTeamNames = selectedTeams.map(s => TEAM_MAP[s]).filter(Boolean);
+
+  // Initial fetch (10 at a time per user requested pagination)
+  const initialPage = await getMatchesBySeason({
+    year: yearNum,
+    teams: fullTeamNames,
+    limit: 10
+  });
+
+  return (
+    <div className="flex-1 flex flex-col">
+      {/* ── HEADER ────────────────────────────────────────────────── */}
+      <header className="px-8 pt-12 pb-6 border-b border-[#1A1A1A]/5">
+        <p className="mb-2 text-[0.68rem] font-black tracking-[0.22em] uppercase text-[#1A1A1A]/25">
+          IPL Season {yearNum}
+        </p>
+        <h1 className="text-4xl font-black tracking-tighter text-[#1A1A1A]">
+          Explore All Roasts
+        </h1>
+      </header>
+
+      {/* ── FILTERS ───────────────────────────────────────────────── */}
+      <Suspense fallback={<div className="h-20 bg-[#FCFBF7]" />}>
+        <TeamFilter />
+      </Suspense>
+
+      {/* ── MATCH FEED ────────────────────────────────────────────── */}
+      <div className="p-8 pb-20">
+        <InfiniteMatchGrid 
+          initialPage={initialPage} 
+          year={yearNum} 
+          selectedTeams={selectedTeams}
+        />
+      </div>
+      
+      {/* Background architectural vertical lines (mirroring other pages) */}
+      <div className="fixed right-[5%] top-0 bottom-0 w-px bg-[#1A1A1A]/4 pointer-events-none -z-10" aria-hidden="true" />
+    </div>
+  );
+}

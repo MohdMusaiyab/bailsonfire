@@ -14,8 +14,9 @@
  *   ever reach the client boundary.
  */
 
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import { type RecentMatchCard } from '@/lib/validations/models';
+import { type RecentMatchCard, type MatchesPage } from '@/lib/validations/models';
 
 /**
  * Fetches the `limit` most recent completed matches, ordered by match date.
@@ -75,4 +76,101 @@ export async function getRecentMatches(limit = 3): Promise<RecentMatchCard[]> {
     commentsCount: row._count.comments,
     summary: row.summaries[0] ?? null,
   }));
+}
+
+/**
+ * Fetches common years from the matchDate field for navigation.
+ */
+export async function getAvailableSeasons(): Promise<number[]> {
+  const result = await prisma.match.findMany({
+    select: { matchDate: true },
+    orderBy: { matchDate: 'desc' },
+  });
+  
+  const years = Array.from(new Set(result.map(r => r.matchDate.getFullYear())));
+  return years.length > 0 ? years : [2026]; // default to current year
+}
+
+/**
+ * Robust match fetcher for the "All Matches" hub.
+ * Supports: Year filtering, Multi-team selection, and Cursor pagination.
+ */
+export async function getMatchesBySeason({
+  year,
+  teams = [],
+  cursor = null,
+  limit = 10
+}: {
+  year: number;
+  teams?: string[];
+  cursor?: string | null;
+  limit?: number;
+}): Promise<MatchesPage> {
+  const startOfYear = new Date(year, 0, 1);
+  const endOfYear = new Date(year, 11, 31, 23, 59, 59);
+
+  const filters: Prisma.MatchWhereInput = {
+    matchDate: {
+      gte: startOfYear,
+      lte: endOfYear,
+    },
+  };
+
+  if (teams.length > 0) {
+    filters.OR = [
+      { homeTeam: { in: teams } },
+      { awayTeam: { in: teams } },
+    ];
+  }
+
+  const rows = await prisma.match.findMany({
+    where: filters,
+    take: limit + 1,
+    orderBy: { matchDate: 'desc' },
+    cursor: cursor ? { id: cursor } : undefined,
+    skip: cursor ? 1 : 0,
+    select: {
+      id: true,
+      externalId: true,
+      homeTeam: true,
+      awayTeam: true,
+      scoreSummary: true,
+      matchDate: true,
+      venue: true,
+      winner: true,
+      loser: true,
+      _count: {
+        select: {
+          likes: true,
+          comments: true,
+        },
+      },
+      summaries: {
+        take: 1,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          content: true,
+        },
+      },
+    },
+  });
+
+  const nextCursor = rows.length > limit ? rows[limit].id : null;
+  const items = rows.slice(0, limit).map((row) => ({
+    id: row.id,
+    externalId: row.externalId,
+    homeTeam: row.homeTeam,
+    awayTeam: row.awayTeam,
+    scoreSummary: row.scoreSummary,
+    matchDate: row.matchDate,
+    venue: row.venue,
+    winner: row.winner,
+    loser: row.loser,
+    likesCount: row._count.likes,
+    commentsCount: row._count.comments,
+    summary: row.summaries[0] ?? null,
+  }));
+
+  return { items, nextCursor };
 }

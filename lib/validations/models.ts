@@ -131,3 +131,9 @@ export type CommentsPage = {
   nextCursor: string | null;
 };
 
+/** Paginated matches page returned by getMatchesBySeason. */
+export type MatchesPage = {
+  items: RecentMatchCard[];
+  /** Pass as cursor on the next call. Null if no more pages. */
+  nextCursor: string | null;
+};

@@ -1,203 +1,11 @@
 // components/general/RecentMatches.tsx
 // Pure Server Component — no client JS needed, pure Tailwind styling.
 
-import Link from "next/link";
 import { getRecentMatches } from "@/lib/actions/matches";
 import { type RecentMatchCard } from "@/lib/validations/models";
+import { MatchCard } from "@/components/match/MatchCard";
 
-// ─── Team accent colours ────────────────────────────────────────────────────
-// Used only as a subtle jewel dot — never as dominant background colour.
-const TEAM_COLORS: Record<string, string> = {
-  "Mumbai Indians": "#004BA0",
-  "Chennai Super Kings": "#C8A800",  // darkened from raw yellow for legibility
-  "Royal Challengers Bengaluru": "#CC1020",
-  "Kolkata Knight Riders": "#552791",
-  "Delhi Capitals": "#0078BC",
-  "Sunrisers Hyderabad": "#D4881E",  // darkened for contrast
-  "Rajasthan Royals": "#EA1A85",
-  "Punjab Kings": "#C41020",
-  "Lucknow Super Giants": "#3B82F6",
-  "Gujarat Titans": "#1C1C1C",
-};
 
-const teamColor = (name: string): string => TEAM_COLORS[name] ?? "#6B7280";
-
-// ─── TeamTag ─────────────────────────────────────────────────────────────────
-
-function TeamTag({ name }: { name: string }) {
-  const color = teamColor(name);
-  return (
-    <span className="inline-flex items-center gap-2 text-[0.9rem] font-bold tracking-tight text-[#1A1A1A]">
-      {/* jewel indicator — team colour as a 8px dot */}
-      <span
-        className="shrink-0 inline-block w-2 h-2 rounded-full"
-        style={{ background: color }}
-        aria-hidden="true"
-      />
-      {name}
-    </span>
-  );
-}
-
-// ─── MatchCard ────────────────────────────────────────────────────────────────
-
-function MatchCard({ match, index }: { match: RecentMatchCard; index: number }) {
-  const dateLabel = match.matchDate.toLocaleDateString("en-IN", {
-    timeZone: "Asia/Kolkata",
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-
-  const roastTeaser =
-    match.summary !== null
-      ? match.summary.content.length > 160
-        ? match.summary.content.slice(0, 157).trimEnd() + "\u2026"
-        : match.summary.content
-      : null;
-
-  // Stagger via inline style — works without JS or CSS animation classes.
-  const staggerDelay = `${index * 80}ms`;
-
-  return (
-    <article
-      className="group relative flex flex-col h-full"
-      style={{ animationDelay: staggerDelay }}
-    >
-      {/*
-       * CARD SHELL
-       * Off-white base with a barely-visible border, matching the Hero's
-       * architectural language. Hover lifts and adds a slightly deeper shadow.
-       */}
-      <div className="flex flex-col flex-1 p-7 bg-white border border-[#1A1A1A]/[0.06] rounded-2xl shadow-[0_1px_4px_rgba(0,0,0,0.04),0_4px_20px_rgba(0,0,0,0.05)] transition-all duration-300 ease-out group-hover:-translate-y-1.5 group-hover:shadow-[0_4px_12px_rgba(0,0,0,0.07),0_16px_40px_rgba(0,0,0,0.08)]">
-
-        {/* ── HEADER: teams + date ──────────────────────────────── */}
-        <header className="mb-5">
-          {/* Teams stacked vertically, separated by a thin rule */}
-          <div className="flex flex-col gap-2.5">
-            <TeamTag name={match.homeTeam} />
-            {/* micro-divider between the two team names */}
-            <div className="flex items-center gap-2 pl-[18px]">
-              <div className="w-5 h-px bg-[#1A1A1A]/10" />
-              <span className="text-[0.6rem] font-black tracking-[0.2em] uppercase text-[#1A1A1A]/30">
-                vs
-              </span>
-            </div>
-            <TeamTag name={match.awayTeam} />
-          </div>
-
-          {/* date — written small, architectural */}
-          <time
-            className="block mt-4 text-[0.68rem] font-bold tracking-[0.18em] uppercase text-[#1A1A1A]/35"
-            dateTime={match.matchDate.toISOString()}
-          >
-            {dateLabel}
-          </time>
-        </header>
-
-        {/* full-width separator — same as Hero's decorative lines */}
-        <div className="mb-5 h-px bg-gradient-to-r from-transparent via-[#1A1A1A]/8 to-transparent" />
-
-        {/* ── BODY: score, venue, winner ───────────────────────── */}
-        <div className="flex flex-col gap-3 mb-5">
-          {/* Score — the dominant text on the card */}
-          <p className="text-base font-black tracking-tight leading-snug text-[#1A1A1A]">
-            {match.scoreSummary}
-          </p>
-
-          {/* Venue — muted, with a tiny pin icon */}
-          <p className="flex items-start gap-1.5 text-[0.75rem] font-semibold text-[#1A1A1A]/40 leading-relaxed">
-            <svg
-              className="w-3 h-3 mt-px shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2.5}
-                d="M12 2C8.686 2 6 4.686 6 8c0 5.25 6 13 6 13s6-7.75 6-13c0-3.314-2.686-6-6-6z"
-              />
-              <circle cx="12" cy="8" r="2" fill="currentColor" strokeWidth={0} />
-            </svg>
-            {match.venue}
-          </p>
-
-          {/* Winner badge — subtle green pill */}
-          {match.winner !== null && (
-            <div className="inline-flex items-center gap-1.5 w-fit px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-[0.7rem] font-black tracking-wide uppercase">
-              <span aria-hidden="true">🏆</span>
-              {match.winner}
-            </div>
-          )}
-        </div>
-
-        {/* ── ROAST TEASER  ─────────────────────────────────────── */}
-        {roastTeaser !== null && (
-          <div className="flex-1 mb-6">
-            <blockquote className="relative pl-3.5 border-l-2 border-[#1A1A1A]/10">
-              <p className="text-[0.82rem] leading-relaxed text-[#1A1A1A]/55 italic m-0">
-                {roastTeaser}
-              </p>
-            </blockquote>
-          </div>
-        )}
-
-        {/* spacer when no teaser */}
-        {roastTeaser === null && <div className="flex-1" />}
-
-        {/* ── FOOTER: counts + CTA ─────────────────────────────── */}
-        <footer className="flex items-center justify-between pt-5 border-t border-[#1A1A1A]/5">
-          {/* engagement counts */}
-          <div className="flex items-center gap-3">
-            <span
-              className="inline-flex items-center gap-1 text-[0.72rem] font-semibold text-[#1A1A1A]/35"
-              aria-label={`${match.likesCount} likes`}
-            >
-              <span aria-hidden="true">👍</span>
-              {match.likesCount}
-            </span>
-            <span
-              className="inline-flex items-center gap-1 text-[0.72rem] font-semibold text-[#1A1A1A]/35"
-              aria-label={`${match.commentsCount} comments`}
-            >
-              <span aria-hidden="true">💬</span>
-              {match.commentsCount}
-            </span>
-          </div>
-
-          {/*
-           * CTA — mirrors the Hero's primary button but scaled down.
-           * Solid charcoal on hover for a premium "press" feel.
-           */}
-          <Link
-            href={`/match/${match.externalId}`}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-[0.75rem] font-black tracking-wide uppercase text-[#1A1A1A] border border-[#1A1A1A]/12 rounded-lg transition-all duration-200 hover:bg-[#1A1A1A] hover:text-[#FCFBF7] hover:border-[#1A1A1A]"
-            aria-label={`Read full roast for ${match.homeTeam} vs ${match.awayTeam}`}
-          >
-            Full Roast
-            <svg
-              className="w-3 h-3"
-              fill="none"
-              viewBox="0 0 12 12"
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M2 6h8M6 2l4 4-4 4"
-              />
-            </svg>
-          </Link>
-        </footer>
-      </div>
-    </article>
-  );
-}
 
 // ─── RecentMatches (Server Component) ────────────────────────────────────────
 
@@ -255,8 +63,24 @@ export async function RecentMatches() {
           </ul>
         )}
 
+        {/* ── VIEW ALL CTA ───────────────────────────────────────── */}
+        <div className="mt-16 flex flex-col items-center gap-6">
+          <p className="text-[0.72rem] font-bold text-[#1A1A1A]/30 uppercase tracking-[0.15em]">
+            Hungry for more? Explore the full season roasts.
+          </p>
+          <a
+            href="/matches/2026"
+            className="group relative inline-flex items-center gap-3 px-10 py-4 bg-[#1A1A1A] text-[#FCFBF7] rounded-full text-[0.75rem] font-black uppercase tracking-[0.2em] transition-all hover:scale-[1.03] active:scale-[0.98] shadow-lg shadow-black/10"
+          >
+            Explore All 2026 Roasts
+            <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </a>
+        </div>
+
         {/* Bottom hairline — same as Hero's bottom fade language */}
-        <div className="mt-20 h-px bg-gradient-to-r from-transparent via-[#1A1A1A]/6 to-transparent" aria-hidden="true" />
+        <div className="mt-24 h-px bg-gradient-to-r from-transparent via-[#1A1A1A]/6 to-transparent" aria-hidden="true" />
       </div>
     </section>
   );
