@@ -45,11 +45,13 @@ export const AIResponseMatchSchema = z.discriminatedUnion("matchFound", [
   }),
   z.object({
     matchFound: z.literal(true),
+    externalId: z.string().optional(), // CricAPI UUID — used as DB externalId when present
     homeTeam: z.string(),
     awayTeam: z.string(),
     homeTeamShort: z.string(),
     awayTeamShort: z.string(),
     scoreSummary: z.string(),
+    matchStatus: z.string().optional(), // e.g. "Delhi Capitals won by 5 wickets"
     venue: z.string(),
     winner: z.string().nullish(),
     loser: z.string().nullish(),

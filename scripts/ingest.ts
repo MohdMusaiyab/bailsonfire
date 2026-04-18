@@ -8,77 +8,54 @@
  *   npx tsx scripts/ingest.ts
  *
  * What this script does:
- *   1. Calls Gemini (Google Search grounded) to find the latest completed
- *      IPL match within the last 48 hours (IST-relative).
+ *   1. Calls CricAPI (/v1/currentMatches + /v1/match_info) to find the latest
+ *      completed IPL match. Early dedup inside the client skips the second
+ *      API call entirely if the match is already in the DB.
  *   2. Validates the response with Zod.
- *   3. Generates a deterministic externalId from the match data — NOT from AI.
- *      Format: "<lower>_<upper>_<YYYY-MM-DD>"  (team shorts sorted A→Z + IST date)
- *      Example: "lsg_rcb_2026-04-15"
- *   4. Checks the DB for an existing match with that externalId (deduplication).
- *   5. If new: generates the roast, then atomically writes Match + Summary to DB.
- *   6. If duplicate: exits cleanly — no tokens wasted on the roast call.
+ *   3. Uses the CricAPI match UUID as the externalId (programmatic, not AI-derived).
+ *   4. Safety-net dedup check in the DB (covers race conditions between cron runs).
+ *   5. If new: generates the roast via Gemini, then atomically writes Match + Summary.
+ *   6. If duplicate: exits cleanly — no Gemini tokens wasted.
  */
 
 import "dotenv/config";
 import { ZodError } from "zod";
-import { fetchRecentMatchData, generateMatchRoast } from "../lib/ai/gemini.js";
+import { fetchRecentIPLMatch } from "../lib/ai/cricapi.js";
+import { generateMatchRoast } from "../lib/ai/gemini.js";
 import { AIResponseMatchSchema } from "../lib/validations/models.js";
 import { prisma } from "../lib/prisma.js";
 
 // ---------------------------------------------------------------------------
-// externalId generator
-// ---------------------------------------------------------------------------
-
-/**
- * Builds a deterministic, collision-safe external ID for deduplication.
- *
- * Design decisions:
- * - Team shorts are sorted alphabetically so "RCB vs LSG" and "LSG vs RCB"
- *   always produce the same key — prevents inverse-duplicate entries.
- * - We extract the date from the IST matchDate string, NOT from the AI's
- *   description, so the key is always canonical and machine-generated.
- * - Lowercased and hyphen-joined for readability and URL-safety.
- *
- * Example: homeTeamShort="RCB", awayTeamShort="LSG", matchDate="2026-04-15T00:00:00.000Z"
- *          → "lsg_rcb_2026-04-15"
- */
-function buildExternalId(
-  homeTeamShort: string,
-  awayTeamShort: string,
-  matchDate: string // ISO 8601, e.g. "2026-04-15T00:00:00.000Z"
-): string {
-  const [lower, upper] = [
-    homeTeamShort.toLowerCase(),
-    awayTeamShort.toLowerCase(),
-  ].sort(); // alphabetical sort = order-independent
-
-  const dateOnly = matchDate.split("T")[0]; // "2026-04-15"
-
-  return `${lower}_${upper}_${dateOnly}`;
-}
-
-// ---------------------------------------------------------------------------
 // Pipeline
 // ---------------------------------------------------------------------------
+
 
 async function runIngestion(): Promise<void> {
   console.log("==================================================");
   console.log("🏏 IPL ROAST AI — DB INGESTION PIPELINE");
   console.log("==================================================");
 
+  if (!process.env.CRICEKT_DATA_API) {
+    console.error("❌ CRICEKT_DATA_API is not set in your .env file.");
+    process.exit(1);
+  }
+
   if (!process.env.GEMINI_API_KEY) {
-    console.error("❌ GEMINI_API_KEY is not set in your .env file.");
+    console.error("❌ GEMINI_API_KEY is not set in your .env file (needed for roast generation).");
     process.exit(1);
   }
 
   try {
-    // ── Stage 1: Fetch match data from Gemini (Google Search grounded) ──────
-    console.log("\n[1/5] Fetching latest completed IPL match from Gemini...");
-    const rawMatchData = await fetchRecentMatchData();
+    // ── Stage 1: Fetch match data from CricAPI ──────────────────────────────
+    // fetchRecentIPLMatch internally performs an early DB dedup check and will
+    // return { matchFound: false } if the match is already saved — avoiding
+    // the second API call and Gemini roast generation entirely.
+    console.log("\n[1/5] Fetching latest completed IPL match from CricAPI...");
+    const rawMatchData = await fetchRecentIPLMatch();
 
     if (!rawMatchData.matchFound) {
       console.log(
-        "\n✅ No completed match found in the last 48 hours. Nothing to ingest. Exiting."
+        "\n✅ No new completed IPL match found (none available or already ingested). Exiting."
       );
       return;
     }
@@ -94,17 +71,17 @@ async function runIngestion(): Promise<void> {
       `     ✅ Valid: ${validated.homeTeam} vs ${validated.awayTeam} | ${validated.matchDate}`
     );
 
-    // ── Stage 3: Build externalId (programmatically — never trust AI for this) ─
-    console.log("\n[3/5] Generating externalId...");
-    const externalId = buildExternalId(
-      validated.homeTeamShort,
-      validated.awayTeamShort,
-      validated.matchDate
-    );
+    // ── Stage 3: Resolve externalId ──────────────────────────────────────────
+    // CricAPI passes its own UUID through the externalId field — use it directly.
+    // Fall back to a slug only if somehow absent (should never happen).
+    console.log("\n[3/5] Resolving externalId...");
+    const externalId =
+      validated.externalId ??
+      `${validated.homeTeamShort.toLowerCase()}_${validated.awayTeamShort.toLowerCase()}_${validated.matchDate.split("T")[0]}`;
     console.log(`     externalId = "${externalId}"`);
 
-    // ── Stage 4: Deduplication check ─────────────────────────────────────────
-    console.log("\n[4/5] Checking database for existing match...");
+    // ── Stage 4: Safety-net dedup (covers simultaneous cron runs) ────────────
+    console.log("\n[4/5] Safety-net deduplication check...");
     const existingMatch = await prisma.match.findUnique({
       where: { externalId },
       select: { id: true, createdAt: true },
