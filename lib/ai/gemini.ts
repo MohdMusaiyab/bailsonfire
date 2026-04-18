@@ -381,22 +381,23 @@ You are a world-class, cynical sports columnist known for your dry,
 razor-sharp wit and absolute lack of empathy for sporting mediocrity.
 
 TASK:
-Based on the provided match data, write a devastatingly sarcastic
-post-match summary (150-200 words).
+Based ONLY on the verified match data provided below, write a devastatingly
+sarcastic post-match summary (150–200 words).
 
-STRICT STYLE GUIDELINES:
-1. LANGUAGE: Use PURE, sophisticated English. Employ high-level vocabulary
-   to mock the absurdity of the performance (e.g., "shambolic,"
-   "existential crisis," "pedestrian," "unintentional comedy").
-2. THE TONE: Deadpan, condescending, and hyper-sarcastic. You aren't angry;
-   you are "intellectually offended" by the lack of competence on show.
-3. THE CRITIQUE: Focus STRICTLY on overall TEAM performance. Do NOT mention
-   individual players, names, or personal statistics.
-4. THE "SALARY" ANGLE: Occasionally contrast their massive professional
-   standing with their "amateur-hour" output.
-5. NO TOXICITY: Sarcasm must stay within the realm of "sporting failure."
-
-OUTPUT: Plain text only. No emojis, no hashtags, no slang.
+CRITICAL RULES — READ CAREFULLY:
+1. GROUND EVERY SENTENCE in the actual data: reference the real teams by name,
+   the real venue, and the real result margin (from "matchStatus").
+   Example: if the status says "won by 5 wickets", mock the loser for collapsing
+   to a target that a Sunday-league side could have defended.
+2. DO NOT INVENT facts. If a detail is not in the match data, do not mention it.
+3. DO NOT mention individual player names or personal statistics — team performance only.
+4. THE TONE: Deadpan, condescending, intellectually offended. You are not angry;
+   you are disappointed in a deeply personal way.
+5. THE "SALARY" ANGLE: Weave in the absurdity of handsomely-paid professionals
+   producing such output — but tie it to the specific result, not generic failure.
+6. THE VENUE: Reference the stadium/city at least once for colour.
+7. NO TOXICITY: Keep sarcasm firmly in the realm of sporting failure.
+8. OUTPUT: Plain text only. No emojis, no hashtags, no slang, no markdown.
 `.trim();
 
 /**
@@ -410,9 +411,24 @@ export async function generateMatchRoast(
     `\n[GEMINI] Generating roast for ${matchData.homeTeam} vs ${matchData.awayTeam}...`
   );
 
+  // Build a rich context block so Gemini has specific facts to anchor the roast.
+  // matchStatus (e.g. "Delhi Capitals won by 5 wickets") is the single most
+  // important fact — it gets its own labelled line at the top.
+  const contextLines: string[] = [
+    `Match: ${matchData.homeTeam} vs ${matchData.awayTeam}`,
+    `Venue: ${matchData.venue}`,
+    `Date: ${matchData.matchDate.split("T")[0]}`,
+    `Result: ${matchData.matchStatus ?? (matchData.winner ? `${matchData.winner} won` : "Result unknown")}`,
+    `Winner: ${matchData.winner ?? "Unknown"}`,
+    `Loser: ${matchData.loser ?? "Unknown"}`,
+    `Score summary: ${matchData.scoreSummary}`,
+  ];
+
+  const context = contextLines.join("\n");
+
   const response = await ai.models.generateContent({
     model: ROAST_MODEL,
-    contents: `${ROAST_PROMPT}\n\nMatch Data:\n${JSON.stringify(matchData, null, 2)}`,
+    contents: `${ROAST_PROMPT}\n\n=== VERIFIED MATCH DATA (use ONLY this) ===\n${context}`,
     config: {
       temperature: 1.2,
     },
