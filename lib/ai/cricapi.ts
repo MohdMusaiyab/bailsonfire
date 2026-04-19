@@ -14,6 +14,7 @@
 
 import { prisma } from "../prisma.js";
 import { type AIResponseMatchPayload } from "../validations/models.js";
+import { buildUniformExternalId } from "../utils/match.js";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -261,15 +262,27 @@ export async function fetchRecentIPLMatch(): Promise<AIResponseMatchPayload> {
   const latest = completedIPLMatches[0];
   console.log(`[CRICAPI]  → Latest completed IPL match: "${latest.name}" (id: ${latest.id})`);
 
-  // ── Step 4: Early DB dedup — use CricAPI UUID as externalId ─────────────
+  // ── Step 4: Early DB dedup — use Uniform Source ID ─────────────
+  // Even though we have the CricAPI UUID, we use our unified SLUG to ensure
+  // 100% uniformity in the database.
+  const teams = latest.teams ?? [];
+  const homeTeamRaw = teams[0] ?? "";
+  const awayTeamRaw = teams[1] ?? "";
+  
+  const uniformExternalId = buildUniformExternalId(
+    toMidnightUTC(latest.date), 
+    homeTeamRaw, 
+    awayTeamRaw
+  );
+
   const existing = await prisma.match.findUnique({
-    where: { externalId: latest.id },
+    where: { externalId: uniformExternalId },
     select: { id: true, createdAt: true },
   });
 
   if (existing) {
     console.log(
-      `[CRICAPI] ✅ DUPLICATE — Match "${latest.id}" already in DB (saved ${existing.createdAt.toISOString()}). ` +
+      `[CRICAPI] ✅ DUPLICATE — Match "${uniformExternalId}" already in DB (saved ${existing.createdAt.toISOString()}). ` +
         `Skipping match_info call.`
     );
     return { matchFound: false };
@@ -281,22 +294,25 @@ export async function fetchRecentIPLMatch(): Promise<AIResponseMatchPayload> {
   const info = await fetchMatchInfo(latest.id);
 
   // ── Step 6: Map to AIResponseMatchPayload ───────────────────────────────
-  const teams = info.teams ?? [];
+  // We re-use teams from `info` just to be consistent
+  const infoTeams = info.teams ?? [];
   const teamInfo = info.teamInfo ?? [];
 
   // teams[0] = home, teams[1] = away (as returned by the API)
-  const homeTeam = teams[0] ?? "";
-  const awayTeam = teams[1] ?? "";
+  const homeTeam = infoTeams[0] ?? "";
+  const awayTeam = infoTeams[1] ?? "";
   const homeTeamShort = teamInfo[0]?.shortname ?? homeTeam.slice(0, 3).toUpperCase();
   const awayTeamShort = teamInfo[1]?.shortname ?? awayTeam.slice(0, 3).toUpperCase();
 
-  const scoreSummary = buildScoreSummary(info.score, teams, teamInfo);
-  const { winner, loser } = deriveWinnerLoser(info.status, teams);
+  const scoreSummary = buildScoreSummary(info.score, infoTeams, teamInfo);
+  const { winner, loser } = deriveWinnerLoser(info.status, infoTeams);
   const matchDate = toMidnightUTC(info.date);
 
+  // Note: we've already computed uniformExternalId above, but we use it here again securely
+  
   const payload: AIResponseMatchPayload = {
     matchFound: true,
-    externalId: info.id, // CricAPI UUID — used directly as DB externalId
+    externalId: uniformExternalId, // Unified SLUG
     homeTeam,
     awayTeam,
     homeTeamShort,
