@@ -389,12 +389,11 @@ CRITICAL RULES — READ CAREFULLY:
    the real venue, and the real result margin (from "matchStatus").
    Example: if the status says "won by 5 wickets", mock the loser for collapsing
    to a target that a Sunday-league side could have defended.
-2. DO NOT INVENT facts. If a detail is not in the match data, do not mention it.
-3. DO NOT mention individual player names or personal statistics — team performance only.
+3. ROAST THE PLAYERS: You are provided with the full match scorecard. Dive deep into the stats! Ruthlessly mock the "superstars" who scored ducks, chewed up balls with slow strike rates, or bowled wildly expensive overs without taking wickets. 
 4. THE TONE: Deadpan, condescending, intellectually offended. You are not angry;
    you are disappointed in a deeply personal way.
 5. THE "SALARY" ANGLE: Weave in the absurdity of handsomely-paid professionals
-   producing such output — but tie it to the specific result, not generic failure.
+   producing such abysmal output. Call them out by name if their scorecard stats justify it!
 6. THE VENUE: Reference the stadium/city at least once for colour.
 7. NO TOXICITY: Keep sarcasm firmly in the realm of sporting failure.
 8. OUTPUT: Plain text only. No emojis, no hashtags, no slang, no markdown.
@@ -423,6 +422,21 @@ export async function generateMatchRoast(
     `Loser: ${matchData.loser ?? "Unknown"}`,
     `Score summary: ${matchData.scoreSummary}`,
   ];
+
+  if (matchData.scorecard?.innings) {
+    contextLines.push("\n--- FULL SCORECARD ---");
+    matchData.scorecard.innings.forEach((inning) => {
+      contextLines.push(`\n[${inning.team} INNINGS: ${inning.total}/${inning.wickets} in ${inning.overs} overs]`);
+      contextLines.push("BATTING:");
+      inning.batting.forEach((b) => {
+        contextLines.push(`- ${b.player}: ${b.runs} off ${b.balls} (SR: ${b.strikeRate}) [${b.out}]`);
+      });
+      contextLines.push("BOWLING:");
+      inning.bowling.forEach((b) => {
+        contextLines.push(`- ${b.player}: ${b.overs} overs, ${b.runs} runs, ${b.wickets} wkts (Econ: ${b.economy})`);
+      });
+    });
+  }
 
   const context = contextLines.join("\n");
 

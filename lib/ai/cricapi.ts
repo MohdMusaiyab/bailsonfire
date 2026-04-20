@@ -57,6 +57,25 @@ interface CricApiMatch {
   matchEnded: boolean;
 }
 
+/** Shape of /v1/match_scorecard raw objects */
+interface RawCricApiInning {
+  inning: string;
+  batting?: Array<{
+    batsman?: { name: string };
+    r?: number;
+    b?: number;
+    sr?: string;
+    dismissal?: string;
+  }>;
+  bowling?: Array<{
+    bowler?: { name: string };
+    o?: number;
+    r?: number;
+    w?: number;
+    eco?: string;
+  }>;
+}
+
 /** Shape of /v1/currentMatches response */
 interface CurrentMatchesResponse {
   apikey: string;
@@ -290,8 +309,49 @@ export async function fetchRecentIPLMatch(): Promise<AIResponseMatchPayload> {
 
   console.log("[CRICAPI]  → Not in DB. Fetching full match info...");
 
-  // ── Step 5: Fetch full match details ────────────────────────────────────
+  // ── Step 5: Fetch full match details & scorecard ────────────────────────────────────
   const info = await fetchMatchInfo(latest.id);
+
+  const scorecardRes = await fetch(
+    `https://api.cricapi.com/v1/match_scorecard?apikey=${process.env.CRICEKT_DATA_API}&id=${latest.id}`
+  );
+  if (!scorecardRes.ok) {
+    throw new Error(`CricAPI scorecard error: ${scorecardRes.status}`);
+  }
+  const scorecardJson = await scorecardRes.json();
+  const rawScorecards = scorecardJson.data?.scorecard ?? [];
+
+  // Map to our optimized MatchScorecard format
+  const mappedInnings = rawScorecards.map((inning: RawCricApiInning) => {
+    // Attempt to extract team name from inning header like "Rajasthan Royals Inning 1"
+    const teamName = inning.inning?.split(" Inning")[0] || "Unknown";
+    
+    // Find matching score object from info.score to get total, wkts, overs
+    const scoreSummary = info.score?.find((s: ScoreEntry) => s.inning === inning.inning);
+
+    return {
+      team: teamName,
+      total: scoreSummary?.r ?? 0,
+      wickets: scoreSummary?.w ?? 0,
+      overs: scoreSummary?.o ?? 0,
+      batting: (inning.batting ?? []).map((b) => ({
+        player: b.batsman?.name ?? "Unknown",
+        runs: b.r ?? 0,
+        balls: b.b ?? 0,
+        strikeRate: b.sr ? parseFloat(b.sr) : 0,
+        out: b.dismissal === "not out" ? "not out" : "out",
+      })),
+      bowling: (inning.bowling ?? []).map((b) => ({
+        player: b.bowler?.name ?? "Unknown",
+        overs: b.o ?? 0,
+        runs: b.r ?? 0,
+        wickets: b.w ?? 0,
+        economy: b.eco ? parseFloat(b.eco) : 0,
+      })),
+    };
+  });
+
+  const scorecard = { innings: mappedInnings };
 
   // ── Step 6: Map to AIResponseMatchPayload ───────────────────────────────
   // We re-use teams from `info` just to be consistent
@@ -323,6 +383,7 @@ export async function fetchRecentIPLMatch(): Promise<AIResponseMatchPayload> {
     winner,
     loser,
     matchDate,
+    scorecard,
   };
 
   console.log(

@@ -39,6 +39,40 @@ export const LikeSchema = z.object({
   matchId: z.string().cuid(),
   createdAt: z.date().optional(),
 });
+export const ScorecardBattingSchema = z.object({
+  player: z.string(),
+  runs: z.number(),
+  balls: z.number(),
+  strikeRate: z.number(),
+  out: z.string(),
+});
+
+export const ScorecardBowlingSchema = z.object({
+  player: z.string(),
+  overs: z.number(),
+  runs: z.number(),
+  wickets: z.number(),
+  economy: z.number(),
+});
+
+export const InningScorecardSchema = z.object({
+  team: z.string(),
+  total: z.number(),
+  wickets: z.number(),
+  overs: z.number(),
+  batting: z.array(ScorecardBattingSchema),
+  bowling: z.array(ScorecardBowlingSchema),
+});
+
+export const MatchScorecardSchema = z.object({
+  innings: z.array(InningScorecardSchema),
+});
+
+export type ScorecardBatting = z.infer<typeof ScorecardBattingSchema>;
+export type ScorecardBowling = z.infer<typeof ScorecardBowlingSchema>;
+export type InningScorecard = z.infer<typeof InningScorecardSchema>;
+export type MatchScorecard = z.infer<typeof MatchScorecardSchema>;
+
 export const AIResponseMatchSchema = z.discriminatedUnion("matchFound", [
   z.object({
     matchFound: z.literal(false),
@@ -56,6 +90,7 @@ export const AIResponseMatchSchema = z.discriminatedUnion("matchFound", [
     winner: z.string().nullish(),
     loser: z.string().nullish(),
     matchDate: z.string(),
+    scorecard: MatchScorecardSchema.optional(), // The full scorecard JSON
   })
 ]);
 export type MatchPayload = z.infer<typeof MatchSchema>;

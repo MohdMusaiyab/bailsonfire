@@ -118,6 +118,7 @@ async function runIngestion(): Promise<void> {
         winner: validated.winner ?? null,
         loser: validated.loser ?? null,
         matchDate: new Date(validated.matchDate),
+        scorecard: validated.scorecard ? (validated.scorecard as import("@prisma/client").Prisma.InputJsonValue) : undefined, // Save full scorecard JSON to DB
         // Nested create — Summary belongs to this Match, created atomically
         summaries: {
           create: {

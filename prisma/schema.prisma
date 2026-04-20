@@ -81,6 +81,7 @@ model Match {
   loser            String?
   playerOfTheMatch String?
   keyMoments       String[]
+  scorecard        Json?
 
   summaries Summary[]
   comments  Comment[]
