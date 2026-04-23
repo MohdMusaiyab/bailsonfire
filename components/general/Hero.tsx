@@ -26,27 +26,6 @@ interface OrbConfig {
 }
 
 const Hero = () => {
-  // Pre-compute random values ONCE, outside render, to avoid impure-function
-  // errors and React hydration mismatches.
-  const orbs = useMemo<OrbConfig[]>(
-    () =>
-      [
-        { w: 340, h: 180, l: 12, t: 8, d: 18 },
-        { w: 200, h: 260, l: 55, t: 25, d: 22 },
-        { w: 280, h: 140, l: 80, t: 60, d: 14 },
-        { w: 160, h: 300, l: 30, t: 70, d: 20 },
-        { w: 220, h: 200, l: 65, t: 5, d: 16 },
-        { w: 310, h: 160, l: 5, t: 45, d: 24 },
-      ].map(({ w, h, l, t, d }) => ({
-        width: w,
-        height: h,
-        left: `${l}%`,
-        top: `${t}%`,
-        duration: d,
-      })),
-    []
-  );
-
   return (
     <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-[#FCFBF7]">
       {/* ── BACKGROUND ─────────────────────────────────────────────── */}
@@ -61,36 +40,9 @@ const Hero = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-[#FCFBF7]/20 via-[#FCFBF7]/60 to-[#FCFBF7]" />
       </div>
 
-      {/* ── FLOATING ORBS ──────────────────────────────────────────── */}
-      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-        {orbs.map((orb, i) => (
-          <motion.div
-            key={i}
-            className="absolute rounded-full bg-[#1A1A1A]/5 blur-xl"
-            style={{
-              width: orb.width,
-              height: orb.height,
-              left: orb.left,
-              top: orb.top,
-            }}
-            animate={{
-              y: [0, -30, 0],
-              x: [0, 20, 0],
-              opacity: [0.05, 0.1, 0.05],
-            }}
-            transition={{
-              duration: orb.duration,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-        ))}
-      </div>
-
       {/* ── CONTENT ────────────────────────────────────────────────── */}
       <div className="container relative z-10 px-6 mx-auto text-center">
         <div className="max-w-4xl mx-auto">
-
           {/* Live badge */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -137,8 +89,9 @@ const Hero = () => {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="mb-12 text-lg md:text-xl font-medium leading-relaxed text-[#4A4A4A] max-w-2xl mx-auto"
           >
-            Real-time AI-generated summaries that don{"\u2019"}t pull any punches.
-            Because some performances aren{"\u2019"}t just bad{"\u2014"}they{"\u2019"}re legendary.
+            Real-time AI-generated summaries that don{"\u2019"}t pull any
+            punches. Because some performances aren{"\u2019"}t just bad
+            {"\u2014"}they{"\u2019"}re legendary.
           </motion.p>
 
           {/* CTA group
@@ -196,10 +149,6 @@ const Hero = () => {
         className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-[#FCFBF7] to-transparent z-20 pointer-events-none"
         aria-hidden="true"
       />
-
-      {/* Architectural vertical lines */}
-      <div className="absolute left-[5%] top-0 bottom-0 w-px bg-[#1A1A1A]/5 hidden lg:block" aria-hidden="true" />
-      <div className="absolute right-[5%] top-0 bottom-0 w-px bg-[#1A1A1A]/5 hidden lg:block" aria-hidden="true" />
     </section>
   );
 };

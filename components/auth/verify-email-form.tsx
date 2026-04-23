@@ -4,6 +4,8 @@ import { useTransition, useState, useEffect } from "react";
 import { requestVerificationOTP, verifyEmailOTP } from "@/lib/actions/auth-actions";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
+import { motion } from "framer-motion";
 
 interface VerifyEmailFormProps {
   email: string;
@@ -69,32 +71,30 @@ export function VerifyEmailForm({ email }: VerifyEmailFormProps) {
     const result = await verifyEmailOTP(otp);
     console.log("[VERIFY FORM] verifyEmailOTP result:", result);
     
-   // In verify-email-form.tsx, inside the onVerify function after successful verification:
+    if (result.success) {
+      console.log("[VERIFY FORM] OTP verification SUCCESS on server!");
+      setSuccess("Email successfully verified!");
+      
+      console.log("[VERIFY FORM] Session BEFORE update call:", JSON.stringify(session, null, 2));
+      console.log("[VERIFY FORM] Calling update() to refresh session...");
+      
+      try {
+        const updatedSession = await update({});
+        console.log("[VERIFY FORM] update() completed successfully");
+        console.log("[VERIFY FORM] Updated session returned:", JSON.stringify(updatedSession, null, 2));
+        console.log("[VERIFY FORM] Updated session emailVerified:", updatedSession?.user?.emailVerified);
+      } catch (error) {
+        console.error("[VERIFY FORM] update() FAILED with error:", error);
+      }
 
-if (result.success) {
-  console.log("[VERIFY FORM] OTP verification SUCCESS on server!");
-  setSuccess("Email successfully verified!");
-  
-  // IMPORTANT: Log session before update
-  console.log("[VERIFY FORM] Session BEFORE update call:", JSON.stringify(session, null, 2));
-  console.log("[VERIFY FORM] Calling update() to refresh session...");
-  
-  try {
-    // Pass an empty object to force the update trigger
-    const updatedSession = await update({});
-    console.log("[VERIFY FORM] update() completed successfully");
-    console.log("[VERIFY FORM] Updated session returned:", JSON.stringify(updatedSession, null, 2));
-    console.log("[VERIFY FORM] Updated session emailVerified:", updatedSession?.user?.emailVerified);
-  } catch (error) {
-    console.error("[VERIFY FORM] update() FAILED with error:", error);
-  }
-
-  console.log("[VERIFY FORM] Waiting 1.5 seconds before redirect...");
-  setTimeout(() => {
-    console.log("[VERIFY FORM] Redirecting to home page with hard navigation");
-    window.location.href = "/";
-  }, 1500);
-}
+      console.log("[VERIFY FORM] Waiting 1.5 seconds before redirect...");
+      setTimeout(() => {
+        console.log("[VERIFY FORM] Redirecting to home page with hard navigation");
+        window.location.href = "/";
+      }, 1500);
+    } else {
+      setError(result.message);
+    }
   };
 
   // Cooldown Timer Logic
@@ -105,70 +105,149 @@ if (result.success) {
   }, [resendCooldown]);
 
   return (
-    <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-lg border m-auto border-gray-100">
-      <div className="space-y-2 text-center">
-        <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Verify Your Email</h2>
-        <p className="text-gray-500 text-sm">
-          {hasSentCode 
-            ? `We've sent a verification code to ${email}`
-            : `Click the button below to receive a verification code at ${email}`
-          }
-        </p>
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#FCFBF7] px-4 py-12">
+      {/* Subtle floating background orbs (consistent theme) */}
+      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+        <motion.div
+          className="absolute rounded-full bg-[#1A1A1A]/5 blur-3xl"
+          style={{ width: "400px", height: "400px", left: "-10%", top: "20%" }}
+          animate={{ x: [0, 30, 0], y: [0, -20, 0], opacity: [0.3, 0.6, 0.3] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute rounded-full bg-[#1A1A1A]/5 blur-3xl"
+          style={{ width: "500px", height: "500px", right: "-15%", bottom: "10%" }}
+          animate={{ x: [0, -40, 0], y: [0, 30, 0], opacity: [0.2, 0.5, 0.2] }}
+          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute rounded-full bg-emerald-500/5 blur-3xl"
+          style={{ width: "300px", height: "300px", left: "20%", bottom: "30%" }}
+          animate={{ x: [0, 20, 0], y: [0, -15, 0], opacity: [0.2, 0.4, 0.2] }}
+          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+        />
       </div>
 
-      {!hasSentCode ? (
-        <div className="space-y-4">
-          {error && <div className="p-3 text-sm text-red-600 bg-red-50 rounded-md border border-red-100">{error}</div>}
-          <button
-            onClick={onSendCode}
-            disabled={isPending || resendCooldown > 0}
-            className="w-full py-2.5 px-4 text-white font-medium bg-blue-600 hover:bg-blue-700 rounded-lg disabled:bg-blue-400 transition-colors shadow-sm"
-          >
-            {isPending ? "Sending..." : resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Send Verification Code"}
-          </button>
-        </div>
-      ) : (
-        <form onSubmit={onVerify} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2 text-center">
-              Enter 6-digit Verification Code
-            </label>
-            <input
-              type="text"
-              maxLength={6}
-              value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-              placeholder="000000"
-              className="w-full text-center text-2xl tracking-[0.5em] font-mono px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-gray-900"
-              disabled={isPending}
-              required
-              autoFocus
-            />
+      {/* Form Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="relative z-10 w-full max-w-md"
+      >
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-[#1A1A1A]/10 p-8 space-y-6">
+          {/* Header */}
+          <div className="space-y-2 text-center">
+            <h2 className="text-3xl font-black tracking-tight text-[#1A1A1A]">
+              Verify Your{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#1A1A1A] to-[#1A1A1A]/50">
+                Email
+              </span>
+            </h2>
+            <p className="text-[#4A4A4A] text-sm font-medium">
+              {hasSentCode 
+                ? `We{"\u2019"}ve sent a verification code to ${email}`
+                : `Click below to receive a code at ${email}`
+              }
+            </p>
           </div>
 
-          {error && <div className="p-3 text-sm text-red-600 bg-red-50 rounded-md border border-red-100">{error}</div>}
-          {success && <div className="p-3 text-sm text-green-700 bg-green-50 rounded-md border border-green-100">{success}</div>}
+          {!hasSentCode ? (
+            <div className="space-y-4">
+              {error && (
+                <div className="p-3 text-sm text-red-600 bg-red-50/80 backdrop-blur-sm rounded-lg border border-red-200">
+                  {error}
+                </div>
+              )}
+              <motion.button
+                onClick={onSendCode}
+                disabled={isPending || resendCooldown > 0}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full py-3 px-4 text-white font-bold rounded-lg bg-[#1A1A1A] hover:bg-[#2A2A2A] disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#1A1A1A]/20"
+              >
+                {isPending ? "Sending..." : resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Send Verification Code"}
+              </motion.button>
+            </div>
+          ) : (
+            <form onSubmit={onVerify} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-[#1A1A1A] mb-2 text-center">
+                  Enter 6-digit Code
+                </label>
+                <input
+                  type="text"
+                  maxLength={6}
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                  placeholder="000000"
+                  className="w-full text-center text-2xl tracking-[0.5em] font-mono px-4 py-3 bg-white border border-[#1A1A1A]/20 rounded-lg focus:ring-2 focus:ring-[#1A1A1A]/30 focus:border-[#1A1A1A] outline-none transition-all text-[#1A1A1A]"
+                  disabled={isPending}
+                  required
+                  autoFocus
+                />
+              </div>
 
-          <button
-            type="submit"
-            disabled={isPending || otp.length !== 6}
-            className="w-full py-2.5 px-4 text-white font-medium bg-blue-600 hover:bg-blue-700 rounded-lg disabled:bg-blue-400 transition-colors shadow-sm"
-          >
-            {isPending ? "Verifying..." : "Verify Code"}
-          </button>
+              {error && (
+                <div className="p-3 text-sm text-red-600 bg-red-50/80 backdrop-blur-sm rounded-lg border border-red-200">
+                  {error}
+                </div>
+              )}
+              {success && (
+                <div className="p-3 text-sm text-emerald-700 bg-emerald-50/80 backdrop-blur-sm rounded-lg border border-emerald-200">
+                  {success}
+                </div>
+              )}
 
-          <div className="flex flex-col items-center gap-2 pt-2">
-            <button
-              type="button"
-              onClick={onSendCode}
-              disabled={isPending || resendCooldown > 0}
-              className="text-xs font-medium text-blue-600 hover:underline disabled:text-gray-400 disabled:no-underline"
+              <motion.button
+                type="submit"
+                disabled={isPending || otp.length !== 6}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full py-3 px-4 text-white font-bold rounded-lg bg-[#1A1A1A] hover:bg-[#2A2A2A] disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#1A1A1A]/20"
+              >
+                {isPending ? "Verifying..." : "Verify Code"}
+              </motion.button>
+
+              <div className="flex justify-center pt-2">
+                <button
+                  type="button"
+                  onClick={onSendCode}
+                  disabled={isPending || resendCooldown > 0}
+                  className="text-sm font-medium text-[#1A1A1A]/70 hover:text-[#1A1A1A] transition-colors disabled:text-[#1A1A1A]/30 disabled:cursor-not-allowed"
+                >
+                  {resendCooldown > 0 ? `Resend available in ${resendCooldown}s` : "Didn't receive a code? Resend"}
+                </button>
+              </div>
+            </form>
+          )}
+
+          <div className="flex flex-col items-center gap-3 pt-2 border-t border-[#1A1A1A]/5">
+            <Link
+              href="/matches/2026"
+              className="inline-flex items-center gap-1.5 text-[#1A1A1A]/60 hover:text-[#1A1A1A] transition-colors group text-sm font-medium"
             >
-              {resendCooldown > 0 ? `Resend available in ${resendCooldown}s` : "Didn't receive a code? Resend"}
-            </button>
+              <svg
+                className="w-4 h-4 transform group-hover:-translate-x-0.5 transition-transform"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Back to Matches
+            </Link>
+
+            <Link
+              href="/auth/sign-up"
+              className="text-xs text-[#1A1A1A]/40 hover:text-[#1A1A1A] transition-colors font-medium"
+            >
+              Entered the wrong email? Sign up again
+            </Link>
           </div>
-        </form>
-      )}
-    </div>
+        </div>
+      </motion.div>
+    </section>
   );
 }
