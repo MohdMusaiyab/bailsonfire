@@ -18,6 +18,7 @@ export const metadata: Metadata = {
 };
 
 import { SessionProvider } from "@/components/providers/session-provider";
+import { VerificationWarning } from "@/components/auth/verification-warning";
 
 export default function RootLayout({
   children,
@@ -31,6 +32,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <SessionProvider>
+          <VerificationWarning />
           {children}
         </SessionProvider>
       </body>
