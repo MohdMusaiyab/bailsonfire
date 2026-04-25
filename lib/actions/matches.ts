@@ -1,5 +1,8 @@
 'use server';
 
+// Re-exported convenience — lets components import actions from one place
+export type { RecentMatchCard, MatchesPage } from '@/lib/validations/models';
+
 /**
  * lib/actions/matches.ts
  *
@@ -173,4 +176,69 @@ export async function getMatchesBySeason({
   }));
 
   return { items, nextCursor };
+}
+
+/**
+ * Fetches the single most-liked match for the Wall of Shame section.
+ * Orders by like count descending. If no match has any likes, returns null.
+ *
+ * Used by: `components/general/WallOfShame.tsx` (home page section)
+ */
+export async function getWallOfShame(): Promise<RecentMatchCard | null> {
+  // findMany + orderBy aggregation — Prisma doesn't support orderBy _count
+  // on relations directly in findFirst, so we fetch top-1 via findMany.
+  const rows = await prisma.match.findMany({
+    take: 1,
+    orderBy: [
+      { likes: { _count: 'desc' } },
+      { matchDate: 'desc' }, // tiebreaker: latest match wins
+    ],
+    select: {
+      id: true,
+      externalId: true,
+      homeTeam: true,
+      awayTeam: true,
+      scoreSummary: true,
+      matchDate: true,
+      venue: true,
+      winner: true,
+      loser: true,
+      _count: {
+        select: {
+          likes: true,
+          comments: true,
+        },
+      },
+      summaries: {
+        take: 1,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          content: true,
+        },
+      },
+    },
+  });
+
+  if (rows.length === 0) return null;
+
+  const row = rows[0];
+
+  // Only return a result if at least one like exists
+  if (row._count.likes === 0) return null;
+
+  return {
+    id: row.id,
+    externalId: row.externalId,
+    homeTeam: row.homeTeam,
+    awayTeam: row.awayTeam,
+    scoreSummary: row.scoreSummary,
+    matchDate: row.matchDate,
+    venue: row.venue,
+    winner: row.winner,
+    loser: row.loser,
+    likesCount: row._count.likes,
+    commentsCount: row._count.comments,
+    summary: row.summaries[0] ?? null,
+  };
 }
