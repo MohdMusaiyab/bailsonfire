@@ -1,38 +1,21 @@
 "use client";
 
 import React from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-
-const TEAM_SHORTNAMES: Record<string, string> = {
-  "Mumbai Indians": "mi",
-  "Chennai Super Kings": "csk",
-  "Royal Challengers Bengaluru": "rcb",
-  "Kolkata Knight Riders": "kkr",
-  "Delhi Capitals": "dc",
-  "Sunrisers Hyderabad": "srh",
-  "Rajasthan Royals": "rr",
-  "Punjab Kings": "pbks",
-  "Lucknow Super Giants": "lsg",
-  "Gujarat Titans": "gt",
-};
-
-const TEAM_COLORS: Record<string, string> = {
-  "mi": "#004BA0",
-  "csk": "#C8A800",
-  "rcb": "#CC1020",
-  "kkr": "#552791",
-  "dc": "#0078BC",
-  "srh": "#D4881E",
-  "rr": "#EA1A85",
-  "pbks": "#C41020",
-  "lsg": "#3B82F6",
-  "gt": "#1C1C1C",
-};
+import { SEASON_TEAMS, TEAM_DETAILS } from "@/lib/constants/teams";
 
 export function TeamFilter() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const params = useParams();
+  
+  const yearStr = params?.year as string;
+  const yearNum = yearStr ? parseInt(yearStr, 10) : new Date().getFullYear();
+  
+  // Fallback to latest teams if year is somehow invalid
+  const availableTeamKeys = SEASON_TEAMS[yearNum] || SEASON_TEAMS[2026];
+
   
   // Get currently selected teams from search params
   const selectedTeams = searchParams.getAll("team");
@@ -66,9 +49,13 @@ export function TeamFilter() {
           Filter Teams:
         </span>
         
-        {Object.entries(TEAM_SHORTNAMES).map(([fullName, shortName]) => {
+        {availableTeamKeys.map((shortName) => {
           const isSelected = selectedTeams.includes(shortName);
-          const color = TEAM_COLORS[shortName];
+          const teamInfo = TEAM_DETAILS[shortName];
+          if (!teamInfo) return null;
+          
+          const color = teamInfo.color;
+          const fullName = teamInfo.fullName;
           
           return (
             <button

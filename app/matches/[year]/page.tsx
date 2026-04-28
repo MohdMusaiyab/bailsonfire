@@ -10,18 +10,7 @@ interface PageProps {
   searchParams: Promise<{ team?: string | string[] }>;
 }
 
-const TEAM_MAP: Record<string, string> = {
-  "mi": "Mumbai Indians",
-  "csk": "Chennai Super Kings",
-  "rcb": "Royal Challengers Bengaluru",
-  "kkr": "Kolkata Knight Riders",
-  "dc": "Delhi Capitals",
-  "srh": "Sunrisers Hyderabad",
-  "rr": "Rajasthan Royals",
-  "pbks": "Punjab Kings",
-  "lsg": "Lucknow Super Giants",
-  "gt": "Gujarat Titans",
-};
+import { TEAM_DETAILS } from "@/lib/constants/teams";
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { year } = await params;
@@ -43,7 +32,7 @@ export default async function SeasonalMatchesPage({ params, searchParams }: Page
   const selectedTeams = Array.isArray(rawTeams) ? rawTeams : rawTeams ? [rawTeams] : [];
   
   // Map shortnames to full names for Prisma
-  const fullTeamNames = selectedTeams.map(s => TEAM_MAP[s]).filter(Boolean);
+  const fullTeamNames = selectedTeams.map(s => TEAM_DETAILS[s]?.fullName).filter(Boolean);
 
   // Initial fetch (10 at a time per user requested pagination)
   const initialPage = await getMatchesBySeason({

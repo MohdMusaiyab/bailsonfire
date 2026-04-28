@@ -15,6 +15,7 @@
 
 import { GoogleGenAI, type GenerateContentResponse } from "@google/genai";
 import { type AIResponseMatchPayload } from "../validations/models.js";
+import { TEAM_LORE } from "./teamPoints.js";
 
 // ---------------------------------------------------------------------------
 // Client setup
@@ -372,55 +373,95 @@ export async function fetchRecentMatchData(): Promise<AIResponseMatchPayload> {
   );
 }
 
+/**
+ * Filters and retrieves lore that is historically accurate for the match year.
+ * Ensures a roast for an older match doesn't accidentally mention future events.
+ */
+function getEraAppropriateLore(teamShort: string, matchYear: number): string {
+  const team = TEAM_LORE.find(t => 
+    t.shortName === teamShort || 
+    t.previousNames.some(prev => prev.includes(teamShort))
+  );
+  if (!team) return "No specific historical baggage found.";
+
+  const history: string[] = [`Overall Reputation: ${team.generalRoastPoint}`];
+
+  team.yearWiseTrolls.forEach(era => {
+    const eraYearMatch = String(era.year).match(/\d{4}/);
+    if (eraYearMatch) {
+      const eraStartYear = parseInt(eraYearMatch[0]);
+      // Only include context that had actually happened by the time of the match
+      if (eraStartYear <= matchYear) {
+        history.push(`[Context from ${era.year}]: ${era.points.join(" ")}`);
+      }
+    }
+  });
+
+  return history.join("\n");
+}
+
 // ---------------------------------------------------------------------------
 // Stage 2: Generate roast (exported — uses lighter model, no search needed)
 // ---------------------------------------------------------------------------
-
 const ROAST_PROMPT = `
-You are a comical cricket writer with zero loyalty, maximum sarcasm, and a strict rule: no personal attacks on individual players (no mocking their looks, family, injuries, or private life). Instead, you roast team behaviors, decision-making, historical choke patterns, scorecard absurdities, and fan delusions.
-Write a 250–350 word roast that:
+You are a comical cricket writer with zero loyalty, maximum sarcasm, and a PhD in "Burning bridges". Your specialty is tearing apart BOTH IPL franchises in a match with brutal, everyday sarcasm that aims for a smirk or a guilty laugh.
 
-Opens with a hook that sets the tone of mockery toward the losing team (or both teams if it's a clown fiesta).
+=== YOUR OBJECTIVE ===
+Craft exactly ONE dense paragraph of pure, modern sarcasm roasting the ENTIRE MATCH. Do NOT just roast the losing team—roast the winning team for how lucky or pathetic they were while winning. Weave actual scorecard facts with their historical franchise trauma.
 
-Exaggerates relentlessly – compare scores to bus numbers, batting collapses to origami, fielding to sleepwalking, etc.
+=== TONE AND VOCABULARY (CRITICAL) ===
+- USE SIMPLE, MODERN ENGLISH: Speak like a savage cricket fan on social media. DO NOT use fancy, complex, or "Shakespearean" words.
+- EXAGGERATE RELENTLESSLY: Compare scores to bus numbers, batting collapses to origami, and fielding to sleepwalking.
+- GROUP-BASED HUMOR: Mock the batting unit, bowling attack, or management as a collective. Use phrases like "the entire top order," "their so-called finishers," or "the franchise DNA."
 
-Uses group-based humor – mock the batting unit, bowling attack, captaincy decisions, or management as a collective. Use phrases like “the entire top order,” “their so-called finishers,” “the dugout,” “the franchise DNA.”
+=== THE ROASTING FORMULA ===
+1. THE HOOK: Open with a brutal one-liner summarizing the overall clown-show of the match, dragging BOTH teams through the mud.
+2. THE EVIDENCE: Use the scorecard to mock BOTH sides. Twist actual facts ("14 runs in 6 overs", "bowled out by a part-timer") into punchlines.
+3. THE LORE INJECTION: Seamlessly inject 1 or 2 historical trolling points from the "OPTIONAL HISTORICAL LORE" for BOTH teams, if applicable. Tie their current performance to their franchise's historical DNA.
+4. THE KILL SHOT: End with a signature closing jab—a one-liner summarizing the teams' eternal shame or delusion (e.g., "Come back when you can spell 'run' without crying").
 
-Leverages actual facts from the scorecard (e.g., “14 runs in the first 6 overs,” “4 ducks in top 5,” “bowled out by a part-timer”) and twists them into punchlines.
+=== CRITICAL RULES ===
+- ROAST BOTH TEAMS: The winner is not safe. Find a reason to mock them.
+- STRICT ERA-GATING: The "Match Year" is the absolute present. You have NO knowledge of events from years following the "Match Year".
+- AVOID REAL-WORLD HARM: No personal attacks, abuse, or hate speech regarding players' families, religion, or injuries. The villain is the collapse itself.
 
-Includes a signature closing jab – a one-liner that summarizes the team’s eternal shame or delusion (e.g., “Come back when you can spell ‘run’ without crying”).
-
-Avoids any real-world harm – no abuse, no hate speech, no targeting a player’s religion, nationality, or appearance. The villain is the collapse itself.
-
-Output format: Plain text, no markdown, no bullet points. Every line should aim for a smirk or a guilty laugh
-
+=== FORMATTING ===
+- STRICTLY ONE CONTINUOUS PARAGRAPH.
+- NO line breaks, NO bullet points, NO markdown formatting, NO emojis. 
+- Every single sentence must be a sharp, funny burn aimed at getting a laugh.
 `.trim();
 /**
  * Given fully-validated match data, generates a roast summary.
- * Uses the lighter model since no web grounding is required here.
  */
 export async function generateMatchRoast(
   matchData: Extract<AIResponseMatchPayload, { matchFound: true }>
 ): Promise<string> {
+  const matchYear = new Date(matchData.matchDate).getFullYear();
+  
+  // Get historical context for both teams up to the match year
+  const homeLore = getEraAppropriateLore(matchData.homeTeamShort, matchYear);
+  const awayLore = getEraAppropriateLore(matchData.awayTeamShort, matchYear);
+
   console.log(
-    `\n[GEMINI] Generating roast for ${matchData.homeTeam} vs ${matchData.awayTeam}...`
+    `\n[GEMINI] Generating roast for ${matchData.homeTeam} vs ${matchData.awayTeam} (${matchYear})...`
   );
 
   // Build a rich context block so Gemini has specific facts to anchor the roast.
-  // matchStatus (e.g. "Delhi Capitals won by 5 wickets") is the single most
-  // important fact — it gets its own labelled line at the top.
   const contextLines: string[] = [
     `Match: ${matchData.homeTeam} vs ${matchData.awayTeam}`,
     `Venue: ${matchData.venue}`,
-    `Date: ${matchData.matchDate.split("T")[0]}`,
+    `Match Year: ${matchYear}`,
     `Result: ${matchData.matchStatus ?? (matchData.winner ? `${matchData.winner} won` : "Result unknown")}`,
     `Winner: ${matchData.winner ?? "Unknown"}`,
     `Loser: ${matchData.loser ?? "Unknown"}`,
     `Score summary: ${matchData.scoreSummary}`,
+    `\n=== OPTIONAL HISTORICAL LORE (Use only if relevant to the vibe) ===`,
+    `[${matchData.homeTeamShort} LORE]:\n${homeLore}`,
+    `[${matchData.awayTeamShort} LORE]:\n${awayLore}`,
   ];
 
   if (matchData.scorecard?.innings) {
-    contextLines.push("\n--- FULL SCORECARD ---");
+    contextLines.push("\n--- REAL-TIME SCORECARD STATS ---");
     matchData.scorecard.innings.forEach((inning) => {
       contextLines.push(`\n[${inning.team} INNINGS: ${inning.total}/${inning.wickets} in ${inning.overs} overs]`);
       contextLines.push("BATTING:");
@@ -438,9 +479,9 @@ export async function generateMatchRoast(
 
   const response = await ai.models.generateContent({
     model: ROAST_MODEL,
-    contents: `${ROAST_PROMPT}\n\n=== VERIFIED MATCH DATA (use ONLY this) ===\n${context}`,
+    contents: `${ROAST_PROMPT}\n\n=== VERIFIED MATCH DATA ===\n${context}`,
     config: {
-      temperature: 1.2,
+      temperature: 0.95,
     },
   });
 
