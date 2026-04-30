@@ -21,7 +21,7 @@ model User {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   comments  Comment[]
-  likes     Like[]
+  reactions Reaction[]
 }
 
 model Account {
@@ -85,7 +85,7 @@ model Match {
 
   summaries Summary[]
   comments  Comment[]
-  likes     Like[]
+  reactions Reaction[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -116,15 +116,27 @@ model Comment {
   updatedAt DateTime @updatedAt
 }
 
-model Like {
-  id      String @id @default(cuid())
+// ─────────────────────────────────────────
+// REACTIONS
+// ─────────────────────────────────────────
+enum ReactionType {
+  FIRE
+  LOVE
+  AVERAGE
+  TRASH
+}
+
+model Reaction {
+  id      String       @id @default(cuid())
   userId  String
   matchId String
+  type    ReactionType
 
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@unique([userId, matchId]) // A user can only like a match once
+  @@unique([userId, matchId]) // A user can only have ONE reaction per match
 }

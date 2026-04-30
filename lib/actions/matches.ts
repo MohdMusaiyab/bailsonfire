@@ -47,7 +47,7 @@ export async function getRecentMatches(limit = 3): Promise<RecentMatchCard[]> {
       // Aggregate counts — one DB round-trip, no N+1
       _count: {
         select: {
-          likes: true,
+          reactions: true,
           comments: true,
         },
       },
@@ -75,7 +75,7 @@ export async function getRecentMatches(limit = 3): Promise<RecentMatchCard[]> {
     venue: row.venue,
     winner: row.winner,
     loser: row.loser,
-    likesCount: row._count.likes,
+    reactionsCount: row._count.reactions,
     commentsCount: row._count.comments,
     summary: row.summaries[0] ?? null,
   }));
@@ -144,7 +144,7 @@ export async function getMatchesBySeason({
       loser: true,
       _count: {
         select: {
-          likes: true,
+          reactions: true,
           comments: true,
         },
       },
@@ -170,7 +170,7 @@ export async function getMatchesBySeason({
     venue: row.venue,
     winner: row.winner,
     loser: row.loser,
-    likesCount: row._count.likes,
+    reactionsCount: row._count.reactions,
     commentsCount: row._count.comments,
     summary: row.summaries[0] ?? null,
   }));
@@ -190,7 +190,7 @@ export async function getWallOfShame(): Promise<RecentMatchCard | null> {
   const rows = await prisma.match.findMany({
     take: 1,
     orderBy: [
-      { likes: { _count: 'desc' } },
+      { reactions: { _count: 'desc' } },
       { matchDate: 'desc' }, // tiebreaker: latest match wins
     ],
     select: {
@@ -205,7 +205,7 @@ export async function getWallOfShame(): Promise<RecentMatchCard | null> {
       loser: true,
       _count: {
         select: {
-          likes: true,
+          reactions: true,
           comments: true,
         },
       },
@@ -224,8 +224,8 @@ export async function getWallOfShame(): Promise<RecentMatchCard | null> {
 
   const row = rows[0];
 
-  // Only return a result if at least one like exists
-  if (row._count.likes === 0) return null;
+  // Only return a result if at least one reaction exists
+  if (row._count.reactions === 0) return null;
 
   return {
     id: row.id,
@@ -237,7 +237,7 @@ export async function getWallOfShame(): Promise<RecentMatchCard | null> {
     venue: row.venue,
     winner: row.winner,
     loser: row.loser,
-    likesCount: row._count.likes,
+    reactionsCount: row._count.reactions,
     commentsCount: row._count.comments,
     summary: row.summaries[0] ?? null,
   };

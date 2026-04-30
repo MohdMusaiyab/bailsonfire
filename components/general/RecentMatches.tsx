@@ -2,8 +2,8 @@
 // Pure Server Component — no client JS needed, pure Tailwind styling.
 
 import { getRecentMatches } from "@/lib/actions/matches";
-import { type RecentMatchCard } from "@/lib/validations/models";
 import { MatchCard } from "@/components/match/MatchCard";
+import Link from "next/link";
 
 
 
@@ -68,7 +68,7 @@ export async function RecentMatches() {
           <p className="text-[0.72rem] font-bold text-[#1A1A1A]/30 uppercase tracking-[0.15em]">
             Hungry for more? Explore the full season roasts.
           </p>
-          <a
+          <Link
             href="/matches/2026"
             className="group relative inline-flex items-center gap-3 px-10 py-4 bg-[#1A1A1A] text-[#FCFBF7] rounded-full text-[0.75rem] font-black uppercase tracking-[0.2em] transition-all hover:scale-[1.03] active:scale-[0.98] shadow-lg shadow-black/10"
           >
@@ -76,7 +76,7 @@ export async function RecentMatches() {
             <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>
-          </a>
+          </Link>
         </div>
 
         {/* Bottom hairline — same as Hero's bottom fade language */}

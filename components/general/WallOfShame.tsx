@@ -77,7 +77,7 @@ export async function WallOfShame() {
               </p>
               <p className="text-sm font-medium text-[#1A1A1A]/35 max-w-xs mx-auto leading-relaxed">
                 The Wall of Shame will be filled once a roast gets its first
-                like. Be the first to crown a disaster.
+                reaction. Be the first to crown a disaster.
               </p>
             </div>
             <Link
@@ -125,7 +125,7 @@ export async function WallOfShame() {
                 {/* Crown badge */}
                 <div className="inline-flex items-center gap-2 px-3 py-1 mb-6 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-[0.65rem] font-black tracking-widest uppercase">
                   <span aria-hidden="true">🏆</span>
-                  Most Liked Roast
+                  Most Reacted Roast
                 </div>
 
                 {/* Teams */}
@@ -182,7 +182,7 @@ export async function WallOfShame() {
                 {/* Footer row */}
                 <div className="flex items-center gap-4 flex-wrap">
                   <span className="inline-flex items-center gap-1.5 text-[0.72rem] font-semibold text-[#1A1A1A]/40">
-                    👍 {match.likesCount.toLocaleString()} likes
+                    🔥 {match.reactionsCount.toLocaleString()} reactions
                   </span>
                   <span className="inline-flex items-center gap-1.5 text-[0.72rem] font-semibold text-[#1A1A1A]/40">
                     💬 {match.commentsCount.toLocaleString()} comments

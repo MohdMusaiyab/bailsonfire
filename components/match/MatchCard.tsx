@@ -111,7 +111,7 @@ export function MatchCard({ match, index }: { match: RecentMatchCard; index: num
         <footer className="flex items-center justify-between pt-4 border-t border-[#1A1A1A]/5 mt-auto">
           <div className="flex items-center gap-3">
             <span className="inline-flex items-center gap-1 text-[0.68rem] font-semibold text-[#1A1A1A]/35">
-              👍 {match.likesCount}
+              🔥 {match.reactionsCount}
             </span>
             <span className="inline-flex items-center gap-1 text-[0.68rem] font-semibold text-[#1A1A1A]/35">
               💬 {match.commentsCount}

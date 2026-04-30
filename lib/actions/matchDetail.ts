@@ -1,7 +1,7 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import { type MatchDetail, type CommentsPage, type CommentItem } from '@/lib/validations/models';
+import { type MatchDetail, type CommentsPage, type CommentItem, type ReactionType } from '@/lib/validations/models';
 
 const COMMENTS_PER_PAGE = 10;
 
@@ -11,7 +11,10 @@ const COMMENTS_PER_PAGE = 10;
  * Fetches a single match by externalId with full detail for the roast page.
  * Returns null if not found — caller should call notFound().
  */
-export async function getMatchDetail(externalId: string): Promise<MatchDetail | null> {
+export async function getMatchDetail(
+  externalId: string,
+  userId?: string
+): Promise<MatchDetail | null> {
   const row = await prisma.match.findUnique({
     where: { externalId },
     select: {
@@ -25,17 +28,41 @@ export async function getMatchDetail(externalId: string): Promise<MatchDetail | 
       winner: true,
       loser: true,
       _count: {
-        select: { likes: true, comments: true },
+        select: { reactions: true, comments: true },
       },
       summaries: {
         take: 1,
         orderBy: { createdAt: 'desc' },
         select: { id: true, content: true, aiModel: true },
       },
+      // Always select reactions, but filter by userId (fallback to empty string if guest)
+      // This ensures the property exists on the 'row' type consistently.
+      reactions: {
+        where: { userId: userId ?? '' },
+        select: { type: true },
+      },
     },
   });
 
   if (!row) return null;
+
+  // For the breakdown, we perform a separate aggregation
+  const breakdownRows = await prisma.reaction.groupBy({
+    by: ['type'],
+    where: { matchId: row.id },
+    _count: true,
+  });
+
+  const reactionBreakdown: Record<ReactionType, number> = {
+    FIRE: 0,
+    LOVE: 0,
+    AVERAGE: 0,
+    TRASH: 0,
+  };
+
+  breakdownRows.forEach((r) => {
+    reactionBreakdown[r.type] = r._count;
+  });
 
   return {
     id: row.id,
@@ -47,8 +74,10 @@ export async function getMatchDetail(externalId: string): Promise<MatchDetail | 
     venue: row.venue,
     winner: row.winner,
     loser: row.loser,
-    likesCount: row._count.likes,
+    reactionsCount: row._count.reactions,
     commentsCount: row._count.comments,
+    userReaction: row.reactions[0]?.type ?? null,
+    reactionBreakdown,
     summary: row.summaries[0] ?? null,
   };
 }
@@ -93,16 +122,18 @@ export async function getComments(
   };
 }
 
-// ─── Like Status ──────────────────────────────────────────────────────────────
+// ─── Reaction Status ──────────────────────────────────────────────────────────
 
 /**
- * Returns true if the given user has liked the given match.
- * Called only for authenticated users.
+ * Returns the reaction type if the given user has reacted to the given match.
  */
-export async function getUserLikeStatus(matchId: string, userId: string): Promise<boolean> {
-  const row = await prisma.like.findUnique({
+export async function getUserReaction(
+  matchId: string,
+  userId: string
+): Promise<ReactionType | null> {
+  const row = await prisma.reaction.findUnique({
     where: { userId_matchId: { userId, matchId } },
-    select: { id: true },
+    select: { type: true },
   });
-  return row !== null;
+  return row?.type ?? null;
 }

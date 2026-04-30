@@ -33,11 +33,15 @@ export const CommentSchema = z.object({
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
 });
-export const LikeSchema = z.object({
+export const ReactionTypeEnum = z.enum(["FIRE", "LOVE", "AVERAGE", "TRASH"]);
+
+export const ReactionSchema = z.object({
   id: z.string().cuid().optional(),
   userId: z.string().cuid(),
   matchId: z.string().cuid(),
+  type: ReactionTypeEnum,
   createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
 });
 export const ScorecardBattingSchema = z.object({
   player: z.string(),
@@ -96,7 +100,8 @@ export const AIResponseMatchSchema = z.discriminatedUnion("matchFound", [
 export type MatchPayload = z.infer<typeof MatchSchema>;
 export type SummaryPayload = z.infer<typeof SummarySchema>;
 export type CommentPayload = z.infer<typeof CommentSchema>;
-export type LikePayload = z.infer<typeof LikeSchema>;
+export type ReactionPayload = z.infer<typeof ReactionSchema>;
+export type ReactionType = z.infer<typeof ReactionTypeEnum>;
 export type AIResponseMatchPayload = z.infer<typeof AIResponseMatchSchema>;
 
 // ---------------------------------------------------------------------------
@@ -124,7 +129,7 @@ export type RecentMatchCard = {
   venue: string;
   winner: string | null;
   loser: string | null;
-  likesCount: number;
+  reactionsCount: number; // Total count of all reactions
   commentsCount: number;
   summary: SummaryPreview | null; // null if roast not yet generated
 };
@@ -140,8 +145,10 @@ export type MatchDetail = {
   venue: string;
   winner: string | null;
   loser: string | null;
-  likesCount: number;
+  reactionsCount: number;
   commentsCount: number;
+  userReaction: ReactionType | null; // The reaction the current user has given
+  reactionBreakdown: Record<ReactionType, number>; // Breakdown of each type
   summary: {
     id: string;
     content: string;

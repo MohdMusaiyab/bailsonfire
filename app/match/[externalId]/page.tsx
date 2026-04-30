@@ -18,8 +18,8 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { type Metadata } from 'next';
 import { auth } from '@/auth';
-import { getMatchDetail, getComments, getUserLikeStatus } from '@/lib/actions/matchDetail';
-import { LikeButton } from '@/components/match/LikeButton';
+import { getMatchDetail, getComments, getUserReaction } from '@/lib/actions/matchDetail';
+import { ReactionButton } from '@/components/match/ReactionButton';
 import { CommentsSection } from '@/components/match/CommentsSection';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -63,14 +63,16 @@ export default async function MatchRoastPage({ params }: PageProps) {
   const userId = session?.user?.id ?? null;
 
   // 2. Fetch match — needed to get the matchId for subsequent queries
-  const match = await getMatchDetail(externalId);
+  // We pass userId to getMatchDetail so it can fetch the user's reaction in one query
+  const match = await getMatchDetail(externalId, userId ?? undefined);
   if (!match) notFound();
 
-  // 3. Fetch comments + like status in parallel using the resolved matchId
-  const [commentsPage, hasLiked] = await Promise.all([
+  // 3. Fetch comments + reaction status in parallel
+  const [commentsPage] = await Promise.all([
     getComments(match.id, null),
-    userId ? getUserLikeStatus(match.id, userId) : Promise.resolve(false),
   ]);
+
+  const userReaction = match.userReaction;
 
   // Format date for display
   const dateLabel = match.matchDate.toLocaleDateString('en-IN', {
@@ -178,12 +180,12 @@ export default async function MatchRoastPage({ params }: PageProps) {
         {/* Section divider */}
         <div className="h-px mb-10 bg-gradient-to-r from-transparent via-[#1A1A1A]/8 to-transparent" aria-hidden="true" />
 
-        {/* ── Engagement Bar: Likes + share ──────────────────────────── */}
+        {/* ── Engagement Bar: Reactions + share ──────────────────────────── */}
         <div className="flex items-center gap-4 mb-2">
-          <LikeButton
+          <ReactionButton
             matchId={match.id}
-            initialCount={match.likesCount}
-            initialLiked={hasLiked}
+            initialCount={match.reactionsCount}
+            initialReaction={userReaction}
             isAuthenticated={userId !== null}
           />
 
