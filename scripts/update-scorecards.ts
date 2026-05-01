@@ -2,7 +2,7 @@
  * scripts/update-scorecards.ts
  *
  * Retroactively parses `ipl_json/` files to compute full Scorecard JSON objects
- * (batting and bowling figures) and updates existing Match records in the database.
+ * (batting and bowling figures) and updates existing Match records in the database (2008–2026).
  *
  * Run with: npx tsx scripts/update-scorecards.ts
  */
@@ -42,8 +42,6 @@ async function run() {
     const isIPL = info.event?.name?.toLowerCase().includes("indian premier league");
     if (!isIPL) continue;
 
-    const seasonYear = parseInt(String(info.season).substring(0, 4), 10);
-    if (seasonYear >= 2026) continue;
 
     const rawHome = info.teams[0] || "Unknown";
     const rawAway = info.teams[1] || "Unknown";

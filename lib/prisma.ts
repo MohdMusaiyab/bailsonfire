@@ -4,11 +4,9 @@ import { PrismaClient } from "@prisma/client";
 import { env } from "./env";
 
 const connectionString = env.DATABASE_URL;
-const pool = new Pool({ 
+const pool = new Pool({
   connectionString,
-  ssl: {
-    rejectUnauthorized: false
-  }
+  ssl: { rejectUnauthorized: false }, // Neon pooler uses a self-signed cert
 });
 const adapter = new PrismaPg(pool);
 

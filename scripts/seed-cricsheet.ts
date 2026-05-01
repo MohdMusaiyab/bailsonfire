@@ -1,8 +1,8 @@
 /**
  * scripts/seed-cricsheet.ts
  *
- * Ingests historical Cricsheet IPL matches (2008-2025) into the DB.
- * Skips 2026 matches and skips AI generation.
+ * Ingests historical Cricsheet IPL matches (2008-2026) into the DB.
+ * Skips AI generation.
  * 
  * Run with: npx tsx scripts/seed-cricsheet.ts
  */
@@ -99,7 +99,7 @@ function buildInningScore(inning: CricsheetMatch["innings"][0]): string {
 
 async function runSeed() {
   console.log("==================================================");
-  console.log("🏏 SEEDING HISTORICAL CRICSHEET MATCHES (2008-2025)");
+  console.log("🏏 SEEDING HISTORICAL CRICSHEET MATCHES (2008-2026)");
   console.log("==================================================");
 
   let files: string[];
@@ -114,7 +114,6 @@ async function runSeed() {
   console.log(`Found ${files.length} JSON files. Discovering valid matches...`);
 
   const recordsToInsert: any[] = [];
-  let skipped2026 = 0;
   let skippedNonIPL = 0;
 
   for (const filename of files) {
@@ -126,14 +125,6 @@ async function runSeed() {
     
     if (!isIPL) {
       skippedNonIPL++;
-      continue;
-    }
-
-    // Season can be a number (2017) or string ("2007/08"). Extract the starting year.
-    const seasonYear = parseInt(String(info.season).substring(0, 4), 10);
-    
-    if (seasonYear >= 2026) {
-      skipped2026++;
       continue;
     }
 
@@ -171,8 +162,7 @@ async function runSeed() {
   }
 
   console.log(`\n✅ Finished parsing. Valid matches to insert: ${recordsToInsert.length}`);
-  console.log(`   Skipped non-IPL: ${skippedNonIPL}`);
-  console.log(`   Skipped >= 2026: ${skipped2026}\n`);
+  console.log(`   Skipped non-IPL: ${skippedNonIPL}\n`);
 
   // Process in chunks
   let processed = 0;
@@ -191,6 +181,18 @@ async function runSeed() {
   console.log("\n==================================================");
   console.log("🚀 SEEDING COMPLETE!");
   console.log("==================================================");
+
+  // Log the most recent match across all parsed records
+  if (recordsToInsert.length > 0) {
+    const mostRecent = recordsToInsert.reduce((prev, curr) =>
+      curr.matchDate > prev.matchDate ? curr : prev
+    );
+    console.log(`\n📅 Most recent match in dataset:`);
+    console.log(`   Date : ${mostRecent.matchDate.toISOString().split("T")[0]}`);
+    console.log(`   Teams: ${mostRecent.homeTeam} vs ${mostRecent.awayTeam}`);
+    console.log(`   Score: ${mostRecent.scoreSummary}`);
+    if (mostRecent.winner) console.log(`   Winner: ${mostRecent.winner}`);
+  }
 }
 
 runSeed()
