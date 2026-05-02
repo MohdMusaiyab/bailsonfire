@@ -82,24 +82,22 @@ async function runLiveIngestion(): Promise<void> {
     where: { externalId },
     create: {
       externalId,
-      homeTeam:     data.homeTeam,
-      awayTeam:     data.awayTeam,
-      scoreSummary: data.scoreSummary,
-      venue:        data.venue,
-      winner:       data.winner   ?? null,
-      loser:        data.loser    ?? null,
-      matchDate:    new Date(data.matchDate),
-      scorecard:    data.scorecard as Prisma.InputJsonValue,
-      keyMoments:   [],
-      // Intentionally no `summaries` nested create here.
-      // Roast generation is a separate manual step via ingest.ts.
+      homeTeam:         data.homeTeam,
+      awayTeam:         data.awayTeam,
+      scoreSummary:     data.scoreSummary,
+      venue:            data.venue,
+      winner:           data.winner   ?? null,
+      loser:            data.loser    ?? null,
+      matchDate:        new Date(data.matchDate),
+      scorecard:        data.scorecard as Prisma.InputJsonValue,
+      playerOfTheMatch: data.playerOfMatch ?? null,
+      keyMoments:       [],
     },
     update: {
-      // Only patch mutable fields. winner/loser are not updated here —
-      // once set they should be treated as immutable.
-      scoreSummary: data.scoreSummary,
-      scorecard:    data.scorecard as Prisma.InputJsonValue,
-      venue:        data.venue,
+      scoreSummary:     data.scoreSummary,
+      scorecard:        data.scorecard as Prisma.InputJsonValue,
+      venue:            data.venue,
+      playerOfTheMatch: data.playerOfMatch ?? null,
     },
     select: {
       id:         true,
@@ -118,6 +116,7 @@ async function runLiveIngestion(): Promise<void> {
   console.log(`   Teams     : ${saved.homeTeam} vs ${saved.awayTeam}`);
   console.log(`   Score     : ${data.scoreSummary}`);
   console.log(`   Winner    : ${data.winner ?? "Unknown"}`);
+  console.log(`   MoM       : ${data.playerOfMatch ?? "N/A"}`);
   console.log(`   Saved at  : ${saved.createdAt.toISOString()}`);
 }
 

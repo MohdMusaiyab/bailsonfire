@@ -47,33 +47,47 @@ interface CricApiMatch {
   matchType: string;
   status: string;
   venue: string;
-  date: string; // "YYYY-MM-DD"
-  dateTimeGMT: string; // "YYYY-MM-DDTHH:MM:SS"
+  date: string;         // "YYYY-MM-DD"
+  dateTimeGMT: string;  // "YYYY-MM-DDTHH:MM:SS"
   teams: string[];
   teamInfo: TeamInfo[];
   score: ScoreEntry[];
   series_id: string;
   matchStarted: boolean;
   matchEnded: boolean;
+  // Fields present on match_info & match_scorecard responses (not always on currentMatches)
+  matchWinner?:    string;                        // e.g. "Delhi Capitals"
+  tossWinner?:     string;                        // e.g. "rajasthan royals"
+  tossChoice?:     string;                        // "bat" | "bowl"
+  playerOfMatch?:  Array<{ id: string; name: string }> | string; // varies by endpoint
+  playerOfTheMatch?: Array<{ id: string; name: string }> | string;
 }
 
-/** Shape of /v1/match_scorecard raw objects */
+/** Shape of /v1/match_scorecard raw objects — matches actual CricAPI response */
+interface RawCricApiBatsman {
+  batsman?: { name: string };
+  r?: number;           // runs
+  b?: number;           // balls
+  sr?: number;          // strike rate — NUMBER in real API (not string)
+  "4s"?: number;
+  "6s"?: number;
+  "dismissal-text"?: string; // e.g. "not out", "c X b Y", "run out"
+  dismissal?: string;   // dismissal type — absent when not out
+}
+
+interface RawCricApiBowler {
+  bowler?: { name: string };
+  o?: number;    // overs
+  r?: number;    // runs
+  w?: number;    // wickets
+  eco?: number;  // economy — NUMBER in real API (not string)
+  m?: number;    // maidens
+}
+
 interface RawCricApiInning {
   inning: string;
-  batting?: Array<{
-    batsman?: { name: string };
-    r?: number;
-    b?: number;
-    sr?: string;
-    dismissal?: string;
-  }>;
-  bowling?: Array<{
-    bowler?: { name: string };
-    o?: number;
-    r?: number;
-    w?: number;
-    eco?: string;
-  }>;
+  batting?:  RawCricApiBatsman[];
+  bowling?:  RawCricApiBowler[];
 }
 
 /** Shape of /v1/currentMatches response */
@@ -101,9 +115,7 @@ interface MatchInfoResponse {
 
 function getApiKey(): string {
   if (!API_KEY) {
-    throw new Error(
-      "[CRICAPI] Missing CRICEKT_DATA_API environment variable."
-    );
+    throw new Error("[CRICAPI] Missing CRICEKT_DATA_API environment variable.");
   }
   return API_KEY;
 }
@@ -119,23 +131,44 @@ function getApiKey(): string {
 function buildScoreSummary(
   score: ScoreEntry[],
   teams: string[],
-  teamInfo: TeamInfo[]
+  teamInfo: TeamInfo[],
 ): string {
   if (!score || score.length === 0) {
-    return teams.join(" vs ");
+    return `${teams.join(" vs ")}`;
   }
 
   // Build a short→full name map from teamInfo for abbreviation
   const shortNames = teamInfo.map((t) => t.shortname);
 
   return score
-    .map((entry) => {
-      // The inning string is like "Chennai Super Kings Inning 1" — extract team name
-      // We try to find the matching shortname from teamInfo
-      const matchingTeam = teamInfo.find((t) =>
-        entry.inning.toLowerCase().includes(t.name.toLowerCase())
+    .map((entry, index) => {
+      // The inning string can be "Team A Inning 1" or "Team A,Team B Inning 1"
+      const lowerInning = entry.inning.toLowerCase();
+      
+      // Find all teams mentioned in this inning string
+      const mentionedTeams = teamInfo.filter((t) =>
+        lowerInning.includes(t.name.toLowerCase())
       );
-      const label = matchingTeam?.shortname ?? entry.inning.split(" Inning")[0];
+
+      let label = "";
+      if (mentionedTeams.length === 1) {
+        label = mentionedTeams[0].shortname;
+      } else if (mentionedTeams.length > 1) {
+        // If multiple teams mentioned, the batting team is usually the one 
+        // that ISN'T the team from the previous inning.
+        if (index > 0) {
+          const prevInningTeam = teamInfo.find(t => 
+            score[index-1].inning.toLowerCase().includes(t.name.toLowerCase())
+          );
+          const currentTeam = mentionedTeams.find(t => t.name !== prevInningTeam?.name);
+          label = currentTeam?.shortname ?? mentionedTeams[0].shortname;
+        } else {
+          label = mentionedTeams[0].shortname;
+        }
+      } else {
+        label = entry.inning.split(" Inning")[0];
+      }
+
       return `${label} ${entry.r}/${entry.w} (${entry.o} ov)`;
     })
     .join(" | ");
@@ -156,8 +189,16 @@ function buildScoreSummary(
  */
 function deriveWinnerLoser(
   status: string,
-  teams: string[]
+  teams: string[],
+  explicitWinner?: string
 ): { winner: string | null; loser: string | null } {
+  // If the API gave us an explicit matchWinner field, use it!
+  if (explicitWinner) {
+    const winner = teams.find(t => t.toLowerCase() === explicitWinner.toLowerCase()) ?? explicitWinner;
+    const loser = teams.find(t => t.toLowerCase() !== explicitWinner.toLowerCase()) ?? null;
+    return { winner, loser };
+  }
+
   if (!status || teams.length < 2) {
     return { winner: null, loser: null };
   }
@@ -165,7 +206,10 @@ function deriveWinnerLoser(
   const lowerStatus = status.toLowerCase();
 
   for (const team of teams) {
-    if (lowerStatus.includes(team.toLowerCase()) && lowerStatus.includes("won")) {
+    if (
+      lowerStatus.includes(team.toLowerCase()) &&
+      lowerStatus.includes("won")
+    ) {
       const loser = teams.find((t) => t !== team) ?? null;
       return { winner: team, loser };
     }
@@ -196,7 +240,7 @@ async function fetchCurrentMatches(): Promise<CricApiMatch[]> {
 
   if (!res.ok) {
     throw new Error(
-      `[CRICAPI] /currentMatches responded with HTTP ${res.status} ${res.statusText}`
+      `[CRICAPI] /currentMatches responded with HTTP ${res.status} ${res.statusText}`,
     );
   }
 
@@ -204,7 +248,7 @@ async function fetchCurrentMatches(): Promise<CricApiMatch[]> {
 
   if (body.status !== "success" || !Array.isArray(body.data)) {
     throw new Error(
-      `[CRICAPI] Unexpected response shape from /currentMatches: status="${body.status}"`
+      `[CRICAPI] Unexpected response shape from /currentMatches: status="${body.status}"`,
     );
   }
 
@@ -224,7 +268,7 @@ async function fetchMatchInfo(matchId: string): Promise<MatchInfoData> {
 
   if (!res.ok) {
     throw new Error(
-      `[CRICAPI] /match_info responded with HTTP ${res.status} ${res.statusText}`
+      `[CRICAPI] /match_info responded with HTTP ${res.status} ${res.statusText}`,
     );
   }
 
@@ -232,7 +276,7 @@ async function fetchMatchInfo(matchId: string): Promise<MatchInfoData> {
 
   if (body.status !== "success" || !body.data) {
     throw new Error(
-      `[CRICAPI] Unexpected response shape from /match_info: status="${body.status}"`
+      `[CRICAPI] Unexpected response shape from /match_info: status="${body.status}"`,
     );
   }
 
@@ -263,11 +307,13 @@ export async function fetchRecentIPLMatch(): Promise<AIResponseMatchPayload> {
   });
 
   console.log(
-    `[CRICAPI]  → ${completedIPLMatches.length} completed IPL match(es) found after filtering.`
+    `[CRICAPI]  → ${completedIPLMatches.length} completed IPL match(es) found after filtering.`,
   );
 
   if (completedIPLMatches.length === 0) {
-    console.log("[CRICAPI] ✅ No completed IPL match available. Returning matchFound: false.");
+    console.log(
+      "[CRICAPI] ✅ No completed IPL match available. Returning matchFound: false.",
+    );
     return { matchFound: false };
   }
 
@@ -275,11 +321,13 @@ export async function fetchRecentIPLMatch(): Promise<AIResponseMatchPayload> {
   // Sort descending by dateTimeGMT so index 0 is the newest
   completedIPLMatches.sort(
     (a, b) =>
-      new Date(b.dateTimeGMT).getTime() - new Date(a.dateTimeGMT).getTime()
+      new Date(b.dateTimeGMT).getTime() - new Date(a.dateTimeGMT).getTime(),
   );
 
   const latest = completedIPLMatches[0];
-  console.log(`[CRICAPI]  → Latest completed IPL match: "${latest.name}" (id: ${latest.id})`);
+  console.log(
+    `[CRICAPI]  → Latest completed IPL match: "${latest.name}" (id: ${latest.id})`,
+  );
 
   // ── Step 4: Early DB dedup — use Uniform Source ID ─────────────
   // Even though we have the CricAPI UUID, we use our unified SLUG to ensure
@@ -287,11 +335,11 @@ export async function fetchRecentIPLMatch(): Promise<AIResponseMatchPayload> {
   const teams = latest.teams ?? [];
   const homeTeamRaw = teams[0] ?? "";
   const awayTeamRaw = teams[1] ?? "";
-  
+
   const uniformExternalId = buildUniformExternalId(
-    toMidnightUTC(latest.date), 
-    homeTeamRaw, 
-    awayTeamRaw
+    toMidnightUTC(latest.date),
+    homeTeamRaw,
+    awayTeamRaw,
   );
 
   const existing = await prisma.match.findUnique({
@@ -302,7 +350,7 @@ export async function fetchRecentIPLMatch(): Promise<AIResponseMatchPayload> {
   if (existing) {
     console.log(
       `[CRICAPI] ✅ DUPLICATE — Match "${uniformExternalId}" already in DB (saved ${existing.createdAt.toISOString()}). ` +
-        `Skipping match_info call.`
+        `Skipping match_info call.`,
     );
     return { matchFound: false };
   }
@@ -313,40 +361,87 @@ export async function fetchRecentIPLMatch(): Promise<AIResponseMatchPayload> {
   const info = await fetchMatchInfo(latest.id);
 
   const scorecardRes = await fetch(
-    `https://api.cricapi.com/v1/match_scorecard?apikey=${process.env.CRICEKT_DATA_API}&id=${latest.id}`
+    `https://api.cricapi.com/v1/match_scorecard?apikey=${process.env.CRICEKT_DATA_API}&id=${latest.id}`,
   );
-  if (!scorecardRes.ok) {
-    throw new Error(`CricAPI scorecard error: ${scorecardRes.status}`);
-  }
-  const scorecardJson = await scorecardRes.json();
-  const rawScorecards = scorecardJson.data?.scorecard ?? [];
+  
+  let rawScorecards: RawCricApiInning[] = [];
+  if (scorecardRes.ok) {
+    const scorecardJson = await scorecardRes.json();
+    console.log("[CRICAPI] 🔍 scorecardJson.status:", scorecardJson.status);
+    console.log("[CRICAPI] 🔍 scorecardJson.data keys:", Object.keys(scorecardJson.data ?? {}));
 
-  // Map to our optimized MatchScorecard format
-  const mappedInnings = rawScorecards.map((inning: RawCricApiInning) => {
-    // Attempt to extract team name from inning header like "Rajasthan Royals Inning 1"
+    if (scorecardJson.status === "success" && scorecardJson.data) {
+      rawScorecards = scorecardJson.data.scorecard ?? [];
+    } else {
+      console.log(`[CRICAPI] ⚠️ Scorecard not yet available from provider: ${scorecardJson.reason || scorecardJson.status}`);
+    }
+  } else {
+    console.log(`[CRICAPI] ⚠️ Scorecard API error: ${scorecardRes.status}`);
+  }
+
+  // ── Debug: dump raw responses ──
+  console.log("[CRICAPI] 🔍 latest.score (from currentMatches):",
+    JSON.stringify(latest.score ?? [], null, 2));
+  console.log("[CRICAPI] 🔍 info.score (from match_info):",
+    JSON.stringify(info.score ?? [], null, 2));
+  console.log("[CRICAPI] 🔍 info.playerOfMatch:",
+    JSON.stringify(info.playerOfMatch ?? info.playerOfTheMatch ?? null));
+  console.log("[CRICAPI] 🔍 toss info:",
+    `${info.tossWinner} chose to ${info.tossChoice}`);
+  
+  console.log("[CRICAPI] 🔍 rawScorecards length:", rawScorecards.length);
+  if (rawScorecards.length > 0) {
+    console.log("[CRICAPI] 🔍 first inning keys:",
+      Object.keys(rawScorecards[0]));
+    console.log("[CRICAPI] 🔍 first batting entry:",
+      JSON.stringify(rawScorecards[0]?.batting?.[0] ?? null));
+    console.log("[CRICAPI] 🔍 first bowling entry:",
+      JSON.stringify(rawScorecards[0]?.bowling?.[0] ?? null));
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
+  // /v1/match_info often returns empty score[] for completed matches.
+  // /v1/currentMatches always has it — use as primary source for inning totals.
+  const scoreData: ScoreEntry[] =
+    info.score?.length ? info.score : (latest.score ?? []);
+
+  console.log(
+    `[CRICAPI]  → Score entries: ${scoreData.length}, Scorecard innings: ${rawScorecards.length}`,
+  );
+
+  const mappedInnings = rawScorecards.map((inning) => {
+    // Extract team name from e.g. "Rajasthan Royals Inning 1"
     const teamName = inning.inning?.split(" Inning")[0] || "Unknown";
-    
-    // Find matching score object from info.score to get total, wkts, overs
-    const scoreSummary = info.score?.find((s: ScoreEntry) => s.inning === inning.inning);
+
+    // Match inning name to score entry for total/wickets/overs
+    const inningScore = scoreData.find((s) => s.inning === inning.inning);
 
     return {
-      team: teamName,
-      total: scoreSummary?.r ?? 0,
-      wickets: scoreSummary?.w ?? 0,
-      overs: scoreSummary?.o ?? 0,
+      team:    teamName,
+      total:   inningScore?.r ?? 0,
+      wickets: inningScore?.w ?? 0,
+      overs:   inningScore?.o ?? 0,
       batting: (inning.batting ?? []).map((b) => ({
-        player: b.batsman?.name ?? "Unknown",
-        runs: b.r ?? 0,
-        balls: b.b ?? 0,
-        strikeRate: b.sr ? parseFloat(b.sr) : 0,
-        out: b.dismissal === "not out" ? "not out" : "out",
+        player:     b.batsman?.name ?? "Unknown",
+        runs:       b.r ?? 0,
+        balls:      b.b ?? 0,
+        // sr is a number in the real API; safe to use directly
+        strikeRate: b.sr ?? 0,
+        fours:      b["4s"] ?? 0,
+        sixes:      b["6s"] ?? 0,
+        // dismissal-text = "not out" when not dismissed
+        out: (b["dismissal-text"] ?? "").toLowerCase() === "not out" || !b.dismissal
+          ? "not out"
+          : "out",
       })),
       bowling: (inning.bowling ?? []).map((b) => ({
-        player: b.bowler?.name ?? "Unknown",
-        overs: b.o ?? 0,
-        runs: b.r ?? 0,
+        player:  b.bowler?.name ?? "Unknown",
+        overs:   b.o ?? 0,
+        runs:    b.r ?? 0,
         wickets: b.w ?? 0,
-        economy: b.eco ? parseFloat(b.eco) : 0,
+        maidens: b.m ?? 0,
+        // eco is a number in the real API; safe to use directly
+        economy: b.eco ?? 0,
       })),
     };
   });
@@ -361,33 +456,44 @@ export async function fetchRecentIPLMatch(): Promise<AIResponseMatchPayload> {
   // teams[0] = home, teams[1] = away (as returned by the API)
   const homeTeam = infoTeams[0] ?? "";
   const awayTeam = infoTeams[1] ?? "";
-  const homeTeamShort = teamInfo[0]?.shortname ?? homeTeam.slice(0, 3).toUpperCase();
-  const awayTeamShort = teamInfo[1]?.shortname ?? awayTeam.slice(0, 3).toUpperCase();
+  const homeTeamShort =
+    teamInfo[0]?.shortname ?? homeTeam.slice(0, 3).toUpperCase();
+  const awayTeamShort =
+    teamInfo[1]?.shortname ?? awayTeam.slice(0, 3).toUpperCase();
 
-  const scoreSummary = buildScoreSummary(info.score, infoTeams, teamInfo);
-  const { winner, loser } = deriveWinnerLoser(info.status, infoTeams);
+  // Use merged scoreData (latest.score ?? info.score) so score is never empty
+  const scoreSummary = buildScoreSummary(scoreData, infoTeams, teamInfo);
+  const { winner, loser } = deriveWinnerLoser(info.status, infoTeams, info.matchWinner);
   const matchDate = toMidnightUTC(info.date);
 
   // Note: we've already computed uniformExternalId above, but we use it here again securely
-  
+
+  // Resolve playerOfMatch — field name varies across CricAPI endpoints.
+  // The value can be an array of player objects or a plain string.
+  const rawPom = info.playerOfMatch ?? info.playerOfTheMatch ?? null;
+  const playerOfMatch: string | null = Array.isArray(rawPom)
+    ? (rawPom[0]?.name ?? null)
+    : (typeof rawPom === "string" ? rawPom : null);
+
   const payload: AIResponseMatchPayload = {
     matchFound: true,
-    externalId: uniformExternalId, // Unified SLUG
+    externalId:    uniformExternalId,
     homeTeam,
     awayTeam,
     homeTeamShort,
     awayTeamShort,
     scoreSummary,
-    matchStatus: info.status, // e.g. "Delhi Capitals won by 5 wickets" — fuel for the roast
-    venue: info.venue,
+    matchStatus:   info.status,
+    venue:         info.venue,
     winner,
     loser,
     matchDate,
     scorecard,
+    playerOfMatch, // logged below
   };
 
   console.log(
-    `[CRICAPI] ✅ Match mapped: ${homeTeam} vs ${awayTeam} on ${info.date}`
+    `[CRICAPI] ✅ Match mapped: ${homeTeam} vs ${awayTeam} on ${info.date}`,
   );
   console.log(`[CRICAPI]  → Score: ${scoreSummary}`);
   console.log(`[CRICAPI]  → Winner: ${winner ?? "Unknown"}`);

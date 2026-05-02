@@ -44,18 +44,21 @@ export const ReactionSchema = z.object({
   updatedAt: z.date().optional(),
 });
 export const ScorecardBattingSchema = z.object({
-  player: z.string(),
-  runs: z.number(),
-  balls: z.number(),
+  player:     z.string(),
+  runs:       z.number(),
+  balls:      z.number(),
   strikeRate: z.number(),
-  out: z.string(),
+  fours:      z.number().optional().default(0),
+  sixes:      z.number().optional().default(0),
+  out:        z.string(),
 });
 
 export const ScorecardBowlingSchema = z.object({
-  player: z.string(),
-  overs: z.number(),
-  runs: z.number(),
+  player:  z.string(),
+  overs:   z.number(),
+  runs:    z.number(),
   wickets: z.number(),
+  maidens: z.number().optional().default(0),
   economy: z.number(),
 });
 
@@ -82,19 +85,20 @@ export const AIResponseMatchSchema = z.discriminatedUnion("matchFound", [
     matchFound: z.literal(false),
   }),
   z.object({
-    matchFound: z.literal(true),
-    externalId: z.string().optional(), // CricAPI UUID — used as DB externalId when present
-    homeTeam: z.string(),
-    awayTeam: z.string(),
+    matchFound:   z.literal(true),
+    externalId:   z.string().optional(),
+    homeTeam:     z.string(),
+    awayTeam:     z.string(),
     homeTeamShort: z.string(),
     awayTeamShort: z.string(),
     scoreSummary: z.string(),
-    matchStatus: z.string().optional(), // e.g. "Delhi Capitals won by 5 wickets"
-    venue: z.string(),
-    winner: z.string().nullish(),
-    loser: z.string().nullish(),
-    matchDate: z.string(),
-    scorecard: MatchScorecardSchema.optional(), // The full scorecard JSON
+    matchStatus:  z.string().optional(),
+    venue:        z.string(),
+    winner:       z.string().nullish(),
+    loser:        z.string().nullish(),
+    matchDate:    z.string(),
+    scorecard:    MatchScorecardSchema.optional(),
+    playerOfMatch: z.string().nullish(), // Man of the match from CricAPI
   })
 ]);
 export type MatchPayload = z.infer<typeof MatchSchema>;
