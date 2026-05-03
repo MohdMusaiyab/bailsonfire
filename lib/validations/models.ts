@@ -99,6 +99,16 @@ export const AIResponseMatchSchema = z.discriminatedUnion("matchFound", [
     matchDate:    z.string(),
     scorecard:    MatchScorecardSchema.optional(),
     playerOfMatch: z.string().nullish(), // Man of the match from CricAPI
+    homeTeamStats: z.object({
+      wins: z.number(),
+      played: z.number(),
+      streak: z.string(),
+    }).optional(),
+    awayTeamStats: z.object({
+      wins: z.number(),
+      played: z.number(),
+      streak: z.string(),
+    }).optional(),
   })
 ]);
 export type MatchPayload = z.infer<typeof MatchSchema>;

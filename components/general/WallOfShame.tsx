@@ -24,6 +24,7 @@ export async function WallOfShame() {
 
   return (
     <section
+      id="wall-of-shame"
       className="relative py-24 px-6 md:px-16 bg-[#FCFBF7] overflow-hidden"
       aria-label="Wall of Shame – most liked roast"
     >

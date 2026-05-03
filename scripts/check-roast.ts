@@ -26,6 +26,55 @@ function resolveShortName(fullName: string): string {
   return getTeamShortName(fullName);
 }
 
+/** 
+ * Calculates season wins and current streak for a team in a given year.
+ */
+async function getTeamSeasonStats(teamName: string, year: number) {
+  const startOfYear = new Date(`${year}-01-01T00:00:00.000Z`);
+  const endOfYear = new Date(`${year}-12-31T23:59:59.999Z`);
+
+  const matches = await prisma.match.findMany({
+    where: {
+      OR: [{ homeTeam: teamName }, { awayTeam: teamName }],
+      matchDate: { gte: startOfYear, lte: endOfYear },
+    },
+    orderBy: { matchDate: "asc" },
+  });
+
+  let wins = 0;
+  let streakCount = 0;
+  let streakType: "W" | "L" | null = null;
+
+  for (const m of matches) {
+    const isWinner = m.winner === teamName;
+    const isLoser = m.loser === teamName;
+
+    if (isWinner) {
+      wins++;
+      if (streakType === "W") {
+        streakCount++;
+      } else {
+        streakType = "W";
+        streakCount = 1;
+      }
+    } else if (isLoser) {
+      if (streakType === "L") {
+        streakCount++;
+      } else {
+        streakType = "L";
+        streakCount = 1;
+      }
+    }
+  }
+
+  return {
+    wins,
+    played: matches.length,
+    streak: streakType ? `${streakType}${streakCount}` : "N/A",
+  };
+}
+
+
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
@@ -72,6 +121,17 @@ async function run() {
   console.log(`   Winner  : ${match.winner ?? "Unknown"}`);
   console.log(`   MoM     : ${match.playerOfTheMatch ?? "N/A"}`);
   console.log(`   ID      : ${match.externalId}`);
+
+  // 1.5 Fetch Season Stats
+  const season = match.matchDate.getFullYear();
+  const homeStats = await getTeamSeasonStats(match.homeTeam, season);
+  const awayStats = await getTeamSeasonStats(match.awayTeam, season);
+
+  console.log(`\n📈 Season Stats (${season}):`);
+  console.log(`   ${match.homeTeam.padEnd(20)}: ${homeStats.wins} Wins (${homeStats.played} played), Streak: ${homeStats.streak}`);
+  console.log(`   ${match.awayTeam.padEnd(20)}: ${awayStats.wins} Wins (${awayStats.played} played), Streak: ${awayStats.streak}`);
+
+
 
   // 3. Print the raw scorecard JSON so you can verify the structure
   console.log("\n📊 Scorecard (raw from DB):");
@@ -120,6 +180,8 @@ async function run() {
             ? JSON.parse(match.scorecard)
             : match.scorecard)
         : undefined,
+    homeTeamStats: homeStats,
+    awayTeamStats: awayStats,
   };
 
   console.log("\n🤖 Sending to Gemini for roast generation...");

@@ -9,10 +9,7 @@
  * - Comment form: visible for all, but submit gated (redirect to sign-in for guests)
  * - Delete button: only shown on own comments
  *
- * Auth strategy:
- * - `currentUserId` is null for guests — passed as prop from the Server Component.
- * - Form shows a "Sign in to comment" CTA for guests instead of a submit button.
- * - All mutations hit Server Actions which re-validate auth server-side.
+ * UPDATED: Added isVerified check and specific messaging for unverified users.
  */
 
 import React, { useState, useTransition } from 'react';
@@ -27,9 +24,10 @@ interface Props {
   /** null if user is not authenticated */
   currentUserId: string | null;
   currentUserName: string | null;
+  isVerified: boolean;
 }
 
-export function CommentsSection({ matchId, initialPage, currentUserId, currentUserName }: Props) {
+export function CommentsSection({ matchId, initialPage, currentUserId, currentUserName, isVerified }: Props) {
   const [comments, setComments] = useState<CommentItem[]>(initialPage.items);
   const [nextCursor, setNextCursor] = useState<string | null>(initialPage.nextCursor);
   const [commentText, setCommentText] = useState('');
@@ -54,14 +52,26 @@ export function CommentsSection({ matchId, initialPage, currentUserId, currentUs
 
   function handlePost() {
     setFormError(null);
+    if (!currentUserId) return;
+    
+    if (!isVerified) {
+      setFormError('Please verify your email to post a comment.');
+      return;
+    }
+
     if (!commentText.trim()) {
       setFormError('Comment cannot be empty.');
       return;
     }
+
     startPosting(async () => {
       const result = await postComment(matchId, commentText);
       if ('error' in result) {
-        setFormError(result.message ?? 'Something went wrong.');
+        if (result.error === 'email_unverified') {
+          setFormError('Please verify your email to post a comment.');
+        } else {
+          setFormError(result.message ?? 'Something went wrong.');
+        }
         return;
       }
       // Optimistically prepend — the text is what we just typed
@@ -85,8 +95,6 @@ export function CommentsSection({ matchId, initialPage, currentUserId, currentUs
     setComments((prev) => prev.filter((c) => c.id !== commentId));
     deleteComment(commentId).then((result) => {
       if ('error' in result) {
-        // If server-side delete failed, we don't re-add here  
-        // (revalidatePath from server handles eventual consistency)
         console.error('[CommentsSection] delete failed:', result.error);
       }
       setDeletingIds((s) => { const n = new Set(s); n.delete(commentId); return n; });
@@ -116,13 +124,15 @@ export function CommentsSection({ matchId, initialPage, currentUserId, currentUs
             setFormError(null);
           }}
           placeholder={
-            currentUserId
-              ? 'Share your take on this roast…'
-              : 'Read the roast, have a thought? Sign in to share it.'
+            !currentUserId
+              ? 'Read the roast, have a thought? Sign in to share it.'
+              : !isVerified
+              ? 'Please verify your email to share your take on this roast…'
+              : 'Share your take on this roast…'
           }
           maxLength={500}
           rows={3}
-          disabled={isPosting}
+          disabled={isPosting || (!!currentUserId && !isVerified)}
           className="w-full resize-none bg-transparent text-sm text-[#1A1A1A] placeholder:text-[#1A1A1A]/30 focus:outline-none leading-relaxed"
         />
 
@@ -137,7 +147,26 @@ export function CommentsSection({ matchId, initialPage, currentUserId, currentUs
           </span>
 
           {/* CTA — differs by auth state */}
-          {currentUserId ? (
+          {!currentUserId ? (
+            <Link
+              href="/auth/sign-in"
+              className="px-5 py-2 text-[0.75rem] font-black uppercase tracking-wider text-[#1A1A1A] bg-white border border-[#1A1A1A]/12 rounded-lg transition-all hover:bg-[#1A1A1A] hover:text-[#FCFBF7] hover:border-[#1A1A1A]"
+            >
+              Sign in to comment →
+            </Link>
+          ) : !isVerified ? (
+            <div className="flex flex-col items-end gap-1">
+              <span className="text-[0.6rem] font-black uppercase tracking-widest text-amber-600 mb-1">
+                Verification Required
+              </span>
+              <Link
+                href="/auth/verify-email"
+                className="px-5 py-2 text-[0.75rem] font-black uppercase tracking-wider text-[#1A1A1A] bg-amber-50 border border-amber-200 rounded-lg transition-all hover:bg-amber-100"
+              >
+                Verify Email →
+              </Link>
+            </div>
+          ) : (
             <button
               onClick={handlePost}
               disabled={isPosting || commentText.trim().length === 0}
@@ -145,13 +174,6 @@ export function CommentsSection({ matchId, initialPage, currentUserId, currentUs
             >
               {isPosting ? 'Posting…' : 'Post Comment'}
             </button>
-          ) : (
-            <Link
-              href="/auth/sign-in"
-              className="px-5 py-2 text-[0.75rem] font-black uppercase tracking-wider text-[#1A1A1A] bg-white border border-[#1A1A1A]/12 rounded-lg transition-all hover:bg-[#1A1A1A] hover:text-[#FCFBF7] hover:border-[#1A1A1A]"
-            >
-              Sign in to comment →
-            </Link>
           )}
         </div>
 

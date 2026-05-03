@@ -14,7 +14,7 @@ type ReactionResult =
       newType: ReactionType | null;
       newCount: number;
     }
-  | { error: "unauthorized" | "match_not_found" | "db_error" };
+  | { error: "unauthorized" | "email_unverified" | "match_not_found" | "db_error" };
 
 /**
  * Toggles or updates the current user's reaction on a match.
@@ -29,6 +29,9 @@ export default async function toggleReaction(
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "unauthorized" };
+  }
+  if (!session.user.emailVerified) {
+    return { error: "email_unverified" };
   }
   const userId = session.user.id;
 
@@ -80,7 +83,7 @@ export default async function toggleReaction(
 
 type CommentResult =
   | { success: true }
-  | { error: "unauthorized" | "invalid" | "db_error"; message?: string };
+  | { error: "unauthorized" | "email_unverified" | "invalid" | "db_error"; message?: string };
 
 /**
  * Creates a new comment. Validates auth and content server-side.
@@ -93,6 +96,9 @@ export async function postComment(
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "unauthorized" };
+  }
+  if (!session.user.emailVerified) {
+    return { error: "email_unverified" };
   }
 
   const trimmed = content.trim();

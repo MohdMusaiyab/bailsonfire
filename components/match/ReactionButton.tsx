@@ -5,6 +5,8 @@
  *
  * Replaces the simple Like button with a multi-reaction selector (FIRE, LOVE, AVERAGE, TRASH).
  * Uses optimistic UI updates for immediate feedback.
+ * 
+ * UPDATED: Added isVerified check and specific tooltips for unverified users.
  */
 
 import React, { useState, useTransition } from "react";
@@ -16,6 +18,7 @@ interface Props {
   initialCount: number;
   initialReaction: ReactionType | null;
   isAuthenticated: boolean;
+  isVerified: boolean;
 }
 
 const REACTIONS: { type: ReactionType; emoji: string; label: string }[] = [
@@ -30,6 +33,7 @@ export function ReactionButton({
   initialCount,
   initialReaction,
   isAuthenticated,
+  isVerified,
 }: Props) {
   const [userReaction, setUserReaction] = useState<ReactionType | null>(
     initialReaction,
@@ -38,7 +42,7 @@ export function ReactionButton({
   const [isPending, startTransition] = useTransition();
 
   async function handleReaction(type: ReactionType) {
-    if (!isAuthenticated || isPending) return;
+    if (!isAuthenticated || !isVerified || isPending) return;
 
     // Optimistic Update
     const prevReaction = userReaction;
@@ -54,7 +58,6 @@ export function ReactionButton({
       if (!prevReaction) {
         setCount((c) => c + 1);
       }
-      // If switching, count remains same as total reactions is what we display
     }
 
     startTransition(async () => {
@@ -63,6 +66,10 @@ export function ReactionButton({
         // Rollback on error
         setUserReaction(prevReaction);
         setCount(prevCount);
+        
+        if (result.error === "email_unverified") {
+          alert("Please verify your email to react to roasts.");
+        }
       } else {
         setCount(result.newCount);
         setUserReaction(result.newType);
@@ -70,7 +77,12 @@ export function ReactionButton({
     });
   }
 
-  if (!isAuthenticated) {
+  // Handle Unauthorized or Unverified States
+  if (!isAuthenticated || !isVerified) {
+    const message = !isAuthenticated 
+      ? "Sign in to react" 
+      : "Verify email to react";
+
     return (
       <div className="relative group/reaction">
         <div className="flex items-center gap-1.5 p-1.5 bg-white border border-[#1A1A1A]/6 rounded-2xl shadow-sm">
@@ -89,7 +101,7 @@ export function ReactionButton({
           </span>
         </div>
         <span className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-[#1A1A1A] text-[#FCFBF7] text-[0.68rem] font-semibold px-3 py-1.5 opacity-0 group-hover/reaction:opacity-100 transition-opacity duration-150">
-          Sign in to react
+          {message}
         </span>
       </div>
     );

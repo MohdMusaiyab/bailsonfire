@@ -1,33 +1,23 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
 
 /**
  * Hero Component - Premium Off-White Version
- *
- * FIXES APPLIED:
- * 1. Math.random() during render → pre-computed via useMemo (was causing
- *    "Cannot call impure function during render" + hydration mismatch).
- * 2. &apos; / apostrophes → replaced with {"\u2019"} (typographic) so JSX
- *    parser never sees a raw HTML entity in an expression context.
- * 3. ROASTS gradient → uses actual distinct colors so bg-clip-text is visible.
- * 4. CTA overlay → converted to a before: pseudo-element approach to avoid
- *    a stacked absolute div interfering with pointer events on the label.
+ * 
+ * UPDATES:
+ * 1. Project Branding: Changed "IPL ROASTS" to "BAILS ON FIRE".
+ * 2. Corrected Links: "See Latest Scorches" -> /matches/2026, "Wall of Shame" -> #wall-of-shame.
+ * 3. Premium UI: Added floating geometric accents and refined typography.
+ * 4. Modern UX: Smooth transitions and hover states using Framer Motion.
  */
-
-interface OrbConfig {
-  width: number;
-  height: number;
-  left: string;
-  top: string;
-  duration: number;
-}
 
 const Hero = () => {
   return (
-    <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-[#FCFBF7]">
+    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-[#FCFBF7]">
       {/* ── BACKGROUND ─────────────────────────────────────────────── */}
       <div className="absolute inset-0 z-0">
         <Image
@@ -35,9 +25,23 @@ const Hero = () => {
           alt="Pristine cricket field at dawn"
           fill
           priority
-          className="object-cover object-center opacity-40 mix-blend-multiply"
+          className="object-cover object-center opacity-30 mix-blend-multiply transition-opacity duration-1000"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#FCFBF7]/20 via-[#FCFBF7]/60 to-[#FCFBF7]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#FCFBF7]/10 via-[#FCFBF7]/70 to-[#FCFBF7]" />
+      </div>
+
+      {/* ── FLOATING ACCENTS ───────────────────────────────────────── */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <motion.div 
+          animate={{ y: [0, -20, 0], rotate: [0, 5, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-1/4 -left-12 w-64 h-64 bg-emerald-100/20 rounded-full blur-3xl" 
+        />
+        <motion.div 
+          animate={{ y: [0, 30, 0], rotate: [0, -5, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute bottom-1/4 -right-12 w-80 h-80 bg-amber-100/20 rounded-full blur-3xl" 
+        />
       </div>
 
       {/* ── CONTENT ────────────────────────────────────────────────── */}
@@ -48,80 +52,64 @@ const Hero = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="inline-flex items-center px-4 py-1.5 mb-8 text-xs font-semibold tracking-widest uppercase rounded-full bg-white/50 backdrop-blur-md border border-[#1A1A1A]/10 text-[#1A1A1A] shadow-sm"
+            className="inline-flex items-center px-4 py-1.5 mb-10 text-[0.65rem] font-black tracking-[0.2em] uppercase rounded-full bg-white/60 backdrop-blur-md border border-[#1A1A1A]/5 text-[#1A1A1A]/70 shadow-sm"
           >
             <span className="relative flex w-2 h-2 mr-3" aria-hidden="true">
-              <span className="absolute inline-flex w-full h-full rounded-full opacity-75 animate-ping bg-emerald-500" />
-              <span className="relative inline-flex w-2 h-2 rounded-full bg-emerald-600" />
+              <span className="absolute inline-flex w-full h-full rounded-full opacity-75 animate-ping bg-emerald-400" />
+              <span className="relative inline-flex w-2 h-2 rounded-full bg-emerald-500" />
             </span>
-            Season 2026 Live
+            IPL 2026 Season Coverage
           </motion.div>
 
-          {/* Headline
-              FIX: ROASTS now uses a real two-color gradient so bg-clip-text
-              is actually visible (was #1A1A1A → #1A1A1A/40, effectively invisible).
-              FIX: apostrophe in "Scorching" sub-line uses unicode \u2019 —
-              no raw HTML entities (&apos;) inside JSX string context.
-          */}
+          {/* Headline */}
           <motion.h1
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="mb-8 text-5xl md:text-7xl lg:text-8xl font-black leading-[0.95] tracking-tighter text-[#1A1A1A]"
+            className="mb-8 text-6xl md:text-8xl lg:text-9xl font-black leading-[0.9] tracking-tighter text-[#1A1A1A]"
           >
-            IPL{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#1A1A1A] to-[#1A1A1A]/30">
-              ROASTS
+            BAILS ON{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-br from-[#1A1A1A] via-[#1A1A1A]/80 to-[#1A1A1A]/40">
+              FIRE
             </span>
             <br />
-            <span className="text-3xl md:text-5xl lg:text-6xl font-light italic tracking-tight opacity-80">
+            <span className="text-3xl md:text-5xl lg:text-6xl font-light italic tracking-tight text-[#1A1A1A]/60 block mt-4">
               Scorching Every Stance.
             </span>
           </motion.h1>
 
-          {/* Subheadline
-              FIX: apostrophes replaced with \u2019 (typographic curly apostrophe)
-              so Next.js JSX transform never encounters a raw &apos; entity.
-          */}
+          {/* Subheadline */}
           <motion.p
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="mb-12 text-lg md:text-xl font-medium leading-relaxed text-[#4A4A4A] max-w-2xl mx-auto"
+            className="mb-14 text-lg md:text-xl font-medium leading-relaxed text-[#1A1A1A]/50 max-w-2xl mx-auto"
           >
             Real-time AI-generated summaries that don{"\u2019"}t pull any
-            punches. Because some performances aren{"\u2019"}t just bad
-            {"\u2014"}they{"\u2019"}re legendary.
+            punches. Witness the legendary collapses and lucky wins of IPL 2026
+            with zero mercy.
           </motion.p>
 
-          {/* CTA group
-              FIX: replaced the stacked absolute gradient div (which could eat
-              pointer events on the button label) with a Tailwind before: pseudo-
-              element. The <span> is now the sole child, removing z-index fights.
-          */}
+          {/* CTA group */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.6 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            className="flex flex-col sm:flex-row items-center justify-center gap-6"
           >
-            <button
+            <Link
+              href="/matches/2026"
               className="
-                group relative px-8 py-4 font-bold rounded-lg overflow-hidden
+                group relative px-10 py-5 font-black text-[0.7rem] tracking-[0.15em] uppercase rounded-xl overflow-hidden
                 transition-all hover:scale-[1.02] active:scale-[0.98]
                 shadow-2xl shadow-[#1A1A1A]/20
                 bg-[#1A1A1A] text-[#FCFBF7]
-                before:absolute before:inset-0
-                before:bg-gradient-to-r before:from-[#1A1A1A] before:to-gray-700
-                before:translate-x-[-100%] before:transition-transform
-                before:duration-500 before:ease-in-out
-                hover:before:translate-x-0
               "
             >
               <span className="relative z-10 flex items-center">
-                See Latest Scorches
+                Explore 2026 Scorches
                 <svg
-                  className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1"
+                  className="w-4 h-4 ml-3 transition-transform group-hover:translate-x-1"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -130,23 +118,44 @@ const Hero = () => {
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    strokeWidth={2.5}
+                    strokeWidth={3}
                     d="M14 5l7 7m0 0l-7 7m7-7H3"
                   />
                 </svg>
               </span>
-            </button>
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-in-out" />
+            </Link>
 
-            <button className="px-8 py-4 bg-white/50 backdrop-blur-sm border border-[#1A1A1A]/20 text-[#1A1A1A] font-bold rounded-lg transition-all hover:bg-white/80 hover:shadow-lg">
-              The Roast Engine
-            </button>
+            <Link 
+              href="#wall-of-shame"
+              className="
+                group px-10 py-5 bg-white border border-[#1A1A1A]/10 text-[#1A1A1A] font-black text-[0.7rem] tracking-[0.15em] uppercase rounded-xl 
+                transition-all hover:bg-white hover:border-[#1A1A1A]/20 hover:shadow-xl hover:shadow-black/5
+              "
+            >
+              Wall of Shame
+            </Link>
           </motion.div>
         </div>
       </div>
 
+      {/* ── SCROLL INDICATOR ───────────────────────────────────────── */}
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.2, duration: 1 }}
+        className="absolute bottom-10 left-1/2 -translate-x-1/2 z-30"
+      >
+        <motion.div 
+          animate={{ y: [0, 10, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="w-px h-12 bg-gradient-to-b from-[#1A1A1A]/40 to-transparent"
+        />
+      </motion.div>
+
       {/* ── BOTTOM FADE ────────────────────────────────────────────── */}
       <div
-        className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-[#FCFBF7] to-transparent z-20 pointer-events-none"
+        className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-[#FCFBF7] via-[#FCFBF7]/80 to-transparent z-20 pointer-events-none"
         aria-hidden="true"
       />
     </section>

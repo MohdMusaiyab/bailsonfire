@@ -18,7 +18,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { type Metadata } from 'next';
 import { auth } from '@/auth';
-import { getMatchDetail, getComments, getUserReaction } from '@/lib/actions/matchDetail';
+import { getMatchDetail, getComments } from '@/lib/actions/matchDetail';
 import { ReactionButton } from '@/components/match/ReactionButton';
 import { CommentsSection } from '@/components/match/CommentsSection';
 
@@ -61,6 +61,7 @@ export default async function MatchRoastPage({ params }: PageProps) {
   // 1. Resolve session — reads from signed cookie, no DB hit
   const session = await auth();
   const userId = session?.user?.id ?? null;
+  const isVerified = session?.user?.emailVerified ? true : false;
 
   // 2. Fetch match — needed to get the matchId for subsequent queries
   // We pass userId to getMatchDetail so it can fetch the user's reaction in one query
@@ -187,6 +188,7 @@ export default async function MatchRoastPage({ params }: PageProps) {
             initialCount={match.reactionsCount}
             initialReaction={userReaction}
             isAuthenticated={userId !== null}
+            isVerified={isVerified}
           />
 
           {/* Static comment count indicator */}
@@ -204,6 +206,7 @@ export default async function MatchRoastPage({ params }: PageProps) {
           initialPage={commentsPage}
           currentUserId={userId}
           currentUserName={session?.user?.name ?? null}
+          isVerified={isVerified}
         />
 
         {/* Bottom hairline */}

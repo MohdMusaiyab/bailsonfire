@@ -126,8 +126,9 @@ export const TEAM_LORE = [
       {
         year: 2026,
         points: [
-          "Dhoni Injured and not playing while fans crying for his presence",
-          "Team playing as if they never held a bat before"
+          "Dhoni injured and not playing while fans cry for his presence like they lost a family member.",
+          "Team playing as if they've forgotten which end of the bat to hold.",
+          "The 'No MS, No Win' curse—proving the team is just a yellow jersey without the 44-year-old anchor."
         ]
       }
     ]
@@ -168,6 +169,14 @@ export const TEAM_LORE = [
           "The 'Rohit vs Hardik' civil war that destroyed the team's balance.",
           "Finishing 10th again. Proving money can't buy team spirit."
         ]
+      },
+      {
+        year: 2026,
+        points: [
+          "The 'Slow Start' that lasted the entire season. Waiting for a win like wait-listed train tickets.",
+          "Spending more on scouting than on scoring runs. The talent factory is currently producing only disappointments.",
+          "Bowling attack so toothless they couldn't even defend a 200-run target in a desert."
+        ]
       }
     ]
   },
@@ -200,6 +209,13 @@ export const TEAM_LORE = [
           "Reaching the 2021 final from nowhere and then forgetting how to bat against CSK.",
           "Buying Mitchell Starc for 24 crores in 2024 just for him to give away runs like a charity.",
           "Winning the 2024 trophy but the fans still credit 'Gautam Gambhir's shadow' more than the captain."
+        ]
+      },
+      {
+        year: 2026,
+        points: [
+          "Starting the season with 6 consecutive losses—making the 'Champions' tag look like a typo.",
+          "The batting order is more unstable than a Jenga tower in an earthquake."
         ]
       }
     ]
@@ -294,6 +310,12 @@ export const TEAM_LORE = [
           "Buying Sam Curran for 18 crores and getting '18-run overs' in return.",
           "Ashwin's 'Mankad' incident—the only time Punjab was relevant for more than a week."
         ]
+      },
+      {
+        year: 2026,
+        points: [
+          "Flying under Shreyas Iyer's captaincy now—new captain, same old 6th-place energy.",
+        ]
       }
     ]
   },
@@ -322,6 +344,14 @@ export const TEAM_LORE = [
         points: [
           "Riyan Parag's 'Search History' controversy—fans realized he spends more time on YouTube than in the nets.",
           "Bottling the second half of the season like a true Rajasthan tradition."
+        ]
+      },
+      {
+        year: 2026,
+        points: [
+          "Vaibhav Sooryavanshi destroying bowling lineups—the only reason anyone still watches their matches.",
+
+          "Still trying to convince people that 2008 wasn't a fluke."
         ]
       }
     ]
