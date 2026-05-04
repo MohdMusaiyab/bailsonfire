@@ -102,11 +102,15 @@ export function buildScorecard(doc: CricsheetMatch): MatchScorecard {
     let totalWickets = 0;
     let legalDeliveries = 0;
 
-    const battingStats: Record<string, { runs: number; balls: number; out: string }> = {};
-    const bowlingStats: Record<string, { balls: number; runs: number; wickets: number }> = {};
+    const battingStats: Record<string, { runs: number; balls: number; fours: number; sixes: number; out: string }> = {};
+    const bowlingStats: Record<string, { balls: number; runs: number; wickets: number; maidens: number }> = {};
 
     for (const over of inning.overs) {
+      let overRuns = 0;
+      let bowlerName = "";
+
       for (const d of over.deliveries) {
+        bowlerName = d.bowler;
         // Team totals
         totalRuns += d.runs.total;
         if (d.wickets) {
@@ -121,9 +125,12 @@ export function buildScorecard(doc: CricsheetMatch): MatchScorecard {
 
         // Batting stats
         if (!battingStats[d.batter]) {
-          battingStats[d.batter] = { runs: 0, balls: 0, out: "not out" };
+          battingStats[d.batter] = { runs: 0, balls: 0, fours: 0, sixes: 0, out: "not out" };
         }
         battingStats[d.batter].runs += d.runs.batter;
+        if (d.runs.batter === 4) battingStats[d.batter].fours++;
+        if (d.runs.batter === 6) battingStats[d.batter].sixes++;
+        
         if (!isWide) {
           battingStats[d.batter].balls++;
         }
@@ -133,13 +140,15 @@ export function buildScorecard(doc: CricsheetMatch): MatchScorecard {
 
         // Bowling stats
         if (!bowlingStats[d.bowler]) {
-          bowlingStats[d.bowler] = { balls: 0, runs: 0, wickets: 0 };
+          bowlingStats[d.bowler] = { balls: 0, runs: 0, wickets: 0, maidens: 0 };
         }
         
-        let bowlerRuns = d.runs.batter;
-        if (isWide) bowlerRuns += d.extras!.wides!;
-        if (isNoBall) bowlerRuns += d.extras!.noballs!;
-        bowlingStats[d.bowler].runs += bowlerRuns;
+        let deliveryRunsForBowler = d.runs.batter;
+        if (isWide) deliveryRunsForBowler += d.extras!.wides!;
+        if (isNoBall) deliveryRunsForBowler += d.extras!.noballs!;
+        
+        overRuns += deliveryRunsForBowler;
+        bowlingStats[d.bowler].runs += deliveryRunsForBowler;
 
         if (isLegal) bowlingStats[d.bowler].balls++;
 
@@ -147,6 +156,11 @@ export function buildScorecard(doc: CricsheetMatch): MatchScorecard {
           const bowlerWickets = d.wickets.filter((w) => w.kind !== "run out" && w.kind !== "retired hurt").length;
           bowlingStats[d.bowler].wickets += bowlerWickets;
         }
+      }
+
+      // Check for maiden (if no runs were conceded in this over)
+      if (overRuns === 0 && bowlerName && bowlingStats[bowlerName]) {
+        bowlingStats[bowlerName].maidens++;
       }
     }
 
@@ -156,6 +170,8 @@ export function buildScorecard(doc: CricsheetMatch): MatchScorecard {
       player,
       runs: stats.runs,
       balls: stats.balls,
+      fours: stats.fours,
+      sixes: stats.sixes,
       strikeRate: stats.balls > 0 ? parseFloat(((stats.runs / stats.balls) * 100).toFixed(2)) : 0,
       out: stats.out,
     }));
@@ -167,6 +183,7 @@ export function buildScorecard(doc: CricsheetMatch): MatchScorecard {
         overs,
         runs: stats.runs,
         wickets: stats.wickets,
+        maidens: stats.maidens,
         economy: stats.balls > 0 ? parseFloat(((stats.runs / (stats.balls / 6)).toFixed(2))) : 0,
       };
     });

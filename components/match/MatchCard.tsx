@@ -56,8 +56,10 @@ export function MatchCard({ match, index }: { match: RecentMatchCard; index: num
       className="group relative flex flex-col h-full animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both"
       style={{ animationDelay: staggerDelay }}
     >
-      <div className="flex flex-col flex-1 p-6 bg-white border border-[#1A1A1A]/[0.06] rounded-2xl shadow-sm transition-all duration-300 ease-out group-hover:-translate-y-1.5 group-hover:shadow-md">
-        
+      <Link 
+        href={`/match/${match.externalId}`}
+        className="flex flex-col flex-1 p-6 bg-white border border-[#1A1A1A]/[0.06] rounded-2xl shadow-sm transition-all duration-300 ease-out group-hover:-translate-y-1.5 group-hover:shadow-md cursor-pointer no-underline"
+      >
         <header className="mb-4">
           <div className="flex flex-col gap-2">
             <TeamTag name={match.homeTeam} />
@@ -118,14 +120,13 @@ export function MatchCard({ match, index }: { match: RecentMatchCard; index: num
             </span>
           </div>
 
-          <Link
-            href={`/match/${match.externalId}`}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[0.7rem] font-black tracking-wide uppercase text-[#1A1A1A] border border-[#1A1A1A]/12 rounded-lg hover:bg-[#1A1A1A] hover:text-[#FCFBF7] transition-all"
+          <div
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[0.7rem] font-black tracking-wide uppercase text-[#1A1A1A] border border-[#1A1A1A]/12 rounded-lg group-hover:bg-[#1A1A1A] group-hover:text-[#FCFBF7] transition-all"
           >
-            Roast
-          </Link>
+            Read Roast
+          </div>
         </footer>
-      </div>
+      </Link>
     </article>
   );
 }

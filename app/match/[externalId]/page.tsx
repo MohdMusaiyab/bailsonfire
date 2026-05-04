@@ -7,11 +7,6 @@
  * Server Component — fetches all data server-side in parallel for:
  * - SEO (full HTML in first response, no JS hydration required for content)
  * - Speed (three DB queries run concurrently with Promise.all)
- *
- * Auth-aware without being an auth wall:
- * - Everyone sees the roast, like count, and all comments.
- * - Logged-in users get an interactive like button and can post/delete comments.
- * - Guests get a disabled-but-visible like count and a "Sign in to comment" CTA.
  */
 
 import { notFound } from 'next/navigation';
@@ -21,6 +16,8 @@ import { auth } from '@/auth';
 import { getMatchDetail, getComments } from '@/lib/actions/matchDetail';
 import { ReactionButton } from '@/components/match/ReactionButton';
 import { CommentsSection } from '@/components/match/CommentsSection';
+import { ShareButton } from '@/components/match/ShareButton';
+import { env } from '@/lib/env';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -39,16 +36,36 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const description =
-    match.summary?.content.slice(0, 155).trimEnd() ??
+    match.summary?.content.slice(0, 160).trimEnd() ??
     `${match.homeTeam} vs ${match.awayTeam} — IPL Match Roast on BailsOnFire`;
 
+  const title = `${match.homeTeam} vs ${match.awayTeam} · Roast | BailsOnFire`;
+  const url = `${env.NEXT_PUBLIC_APP_URL}/match/${externalId}`;
+
   return {
-    title: `${match.homeTeam} vs ${match.awayTeam} · ${match.scoreSummary.slice(0, 40)} | BailsOnFire`,
+    title,
     description,
+    alternates: { canonical: url },
     openGraph: {
-      title: `${match.homeTeam} vs ${match.awayTeam} — Roast`,
+      title,
       description,
+      url,
       type: 'article',
+      siteName: 'BailsOnFire',
+      images: [
+        {
+          url: `/match/${externalId}/opengraph-image`,
+          width: 1200,
+          height: 630,
+          alt: `Roast for ${match.homeTeam} vs ${match.awayTeam}`,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [`/match/${externalId}/opengraph-image`],
     },
   };
 }
@@ -84,6 +101,9 @@ export default async function MatchRoastPage({ params }: PageProps) {
     year: 'numeric',
   });
 
+  const shareUrl = `${env.NEXT_PUBLIC_APP_URL}/match/${externalId}`;
+  const matchYear = match.matchDate.getFullYear();
+
   return (
     <div className="min-h-screen bg-[#FCFBF7]">
       {/* Architectural vertical lines — mirror homepage */}
@@ -95,13 +115,13 @@ export default async function MatchRoastPage({ params }: PageProps) {
         {/* ── Breadcrumb ─────────────────────────────────────────────── */}
         <nav className="mb-12" aria-label="Breadcrumb">
           <Link
-            href="/"
+            href={`/matches/${matchYear}`}
             className="inline-flex items-center gap-1.5 text-[0.72rem] font-bold uppercase tracking-widest text-[#1A1A1A]/35 hover:text-[#1A1A1A] transition-colors"
           >
             <svg className="w-3 h-3" fill="none" viewBox="0 0 12 12" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 6H3M5 2L1 6l4 4" />
             </svg>
-            Recent Matches
+            IPL {matchYear} Season
           </Link>
         </nav>
 
@@ -136,13 +156,22 @@ export default async function MatchRoastPage({ params }: PageProps) {
             </p>
           </div>
 
-          {/* Winner badge */}
-          {match.winner && (
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-[0.72rem] font-black uppercase tracking-wide">
-              <span aria-hidden="true">🏆</span>
-              {match.winner} won
-            </div>
-          )}
+          <div className="flex items-center justify-between">
+            {/* Winner badge */}
+            {match.winner && (
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-[0.72rem] font-black uppercase tracking-wide">
+                <span aria-hidden="true">🏆</span>
+                {match.winner} won
+              </div>
+            )}
+            
+            {/* Share Button Integrated Here */}
+            <ShareButton 
+              title={`${match.homeTeam} vs ${match.awayTeam} Roast`}
+              text={`Check out this brutal AI roast of the ${match.homeTeam} vs ${match.awayTeam} match on Bails On Fire!`}
+              url={shareUrl}
+            />
+          </div>
         </header>
 
         {/* Section divider */}
@@ -181,7 +210,7 @@ export default async function MatchRoastPage({ params }: PageProps) {
         {/* Section divider */}
         <div className="h-px mb-10 bg-gradient-to-r from-transparent via-[#1A1A1A]/8 to-transparent" aria-hidden="true" />
 
-        {/* ── Engagement Bar: Reactions + share ──────────────────────────── */}
+        {/* ── Engagement Bar: Reactions ──────────────────────────── */}
         <div className="flex items-center gap-4 mb-2">
           <ReactionButton
             matchId={match.id}

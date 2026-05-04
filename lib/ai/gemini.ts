@@ -16,6 +16,7 @@
 import { GoogleGenAI, type GenerateContentResponse } from "@google/genai";
 import { type AIResponseMatchPayload } from "../validations/models.js";
 import { TEAM_LORE } from "./teamPoints.js";
+import { buildUniformExternalId } from "../utils/match.js";
 
 // ---------------------------------------------------------------------------
 // Client setup
@@ -231,10 +232,15 @@ function parseMatchPayload(raw: string): AIResponseMatchPayload {
     );
   }
 
+  const homeTeam = obj["homeTeam"] as string;
+  const awayTeam = obj["awayTeam"] as string;
+  const externalId = buildUniformExternalId(matchDate, homeTeam, awayTeam);
+
   return {
     matchFound: true,
-    homeTeam: obj["homeTeam"] as string,
-    awayTeam: obj["awayTeam"] as string,
+    externalId,
+    homeTeam,
+    awayTeam,
     homeTeamShort: obj["homeTeamShort"] as string,
     awayTeamShort: obj["awayTeamShort"] as string,
     scoreSummary: obj["scoreSummary"] as string,

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { RegisterSchema } from "@/lib/validations/auth";
+import { sendVerificationEmail } from "@/lib/mail";
 
 // A standard API Response Type for consistency
 export type ApiResponse<T = unknown> = {
@@ -9,6 +10,13 @@ export type ApiResponse<T = unknown> = {
   message: string;
   data?: T;
 };
+
+/**
+ * Generates a random 6-digit numeric OTP.
+ */
+function generateOTP(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
 
 export async function POST(request: Request) {
   try {
@@ -24,6 +32,7 @@ export async function POST(request: Request) {
 
     const { email, password, name } = validatedData.data;
 
+    // 1. Check if user already exists
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
@@ -35,6 +44,7 @@ export async function POST(request: Request) {
       );
     }
 
+    // 2. Hash password and create the user
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = await prisma.user.create({
@@ -43,12 +53,49 @@ export async function POST(request: Request) {
         email,
         password: hashedPassword,
       },
-      select: { id: true, email: true, name: true } // Don't return password hash
+      select: { id: true, email: true, name: true }
     });
+
+    // 3. Generate and Save OTP
+    const otp = generateOTP();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+
+    await prisma.verificationOTP.upsert({
+      where: { 
+        email_type: { 
+          email, 
+          type: "EMAIL_VERIFICATION" 
+        } 
+      },
+      update: { 
+        otp, 
+        expiresAt 
+      },
+      create: {
+        email,
+        otp,
+        type: "EMAIL_VERIFICATION",
+        expiresAt,
+      },
+    });
+
+    // 4. Send Verification Email
+    const emailResult = await sendVerificationEmail(email, otp);
+    
+    if (!emailResult.success) {
+      console.error("[SIGNUP_MAIL_ERROR]", emailResult.message);
+      // We don't fail the whole signup if mail fails (user is still created),
+      // but we warn them in the success message that mail might be delayed.
+      return NextResponse.json<ApiResponse>({ 
+        success: true, 
+        message: "Account created, but we had trouble sending the verification email. Please try resending it from the verification page.",
+        data: newUser
+      });
+    }
 
     return NextResponse.json<ApiResponse>({ 
       success: true, 
-      message: "Account successfully created!", 
+      message: "Account created! Please check your email for the verification code.", 
       data: newUser 
     });
   } catch (error) {

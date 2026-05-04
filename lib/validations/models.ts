@@ -48,8 +48,8 @@ export const ScorecardBattingSchema = z.object({
   runs:       z.number(),
   balls:      z.number(),
   strikeRate: z.number(),
-  fours:      z.number().optional().default(0),
-  sixes:      z.number().optional().default(0),
+  fours:      z.number(),
+  sixes:      z.number(),
   out:        z.string(),
 });
 
@@ -58,7 +58,7 @@ export const ScorecardBowlingSchema = z.object({
   overs:   z.number(),
   runs:    z.number(),
   wickets: z.number(),
-  maidens: z.number().optional().default(0),
+  maidens: z.number(),
   economy: z.number(),
 });
 
@@ -86,7 +86,7 @@ export const AIResponseMatchSchema = z.discriminatedUnion("matchFound", [
   }),
   z.object({
     matchFound:   z.literal(true),
-    externalId:   z.string().optional(),
+    externalId:   z.string(),
     homeTeam:     z.string(),
     awayTeam:     z.string(),
     homeTeamShort: z.string(),
