@@ -437,6 +437,57 @@ You are Ravi Gupta – the king of high‑energy cricket roasting. Your language
 
 Now write a fresh, loud, Ravi‑Gupta‑style roast using the match data below. Invent your own comparisons. Don't repeat the example or past roasts.
 `.trim();
+
+/**
+ * Uses Gemini with Google Search Grounding to fetch missing scorecard context.
+ * This acts as a highly resilient fallback when CricAPI fails to provide the detailed scorecard.
+ */
+async function fetchMissingContextViaSearch(
+  homeTeam: string,
+  awayTeam: string,
+  matchDate: string,
+  scoreSummary: string
+): Promise<string> {
+  console.log(`[GEMINI] 🔎 Scorecard missing! Triggering Google Search Grounding for context...`);
+  
+  const prompt = `
+Search Google for the IPL match between ${homeTeam} and ${awayTeam} played on or around ${matchDate.split("T")[0]}.
+The final score was roughly: ${scoreSummary}.
+
+Please provide a concise, factual 5-bullet-point summary of the match details specifically highlighting:
+1. The top 2 run scorers (and their scores/strike rates).
+2. The top 2 bowlers (and their figures/economy).
+3. Any major batting collapses or slow run rates.
+4. Any highly expensive overs or dropped catches.
+5. Why the losing team ultimately lost.
+
+Return ONLY the bullet points. Do not include any introductory or conversational text.
+`.trim();
+
+  try {
+    const response = await ai.models.generateContent({
+      model: FETCH_MODEL, // Using the model with search access
+      contents: prompt,
+      config: {
+        tools: [{ googleSearch: {} }],
+        temperature: 0.7,
+      },
+    });
+
+    logGroundingMetadata(response);
+
+    const text = response.text;
+    if (!text || text.trim() === "") {
+      return "No additional context found via search.";
+    }
+
+    return text.trim();
+  } catch (err) {
+    console.error(`[GEMINI] ❌ Failed to fetch missing context via search:`, err);
+    return "Failed to fetch missing context via search.";
+  }
+}
+
 /**
  * Given fully-validated match data, generates a roast summary.
  */
@@ -474,7 +525,7 @@ export async function generateMatchRoast(
     contextLines.push(`[${matchData.awayTeamShort} SEASON STATS]: ${matchData.awayTeamStats.wins} wins from ${matchData.awayTeamStats.played} games. Current Streak: ${matchData.awayTeamStats.streak}`);
   }
 
-  if (matchData.scorecard?.innings) {
+  if (matchData.scorecard?.innings && matchData.scorecard.innings.length > 0) {
     contextLines.push("\n--- REAL-TIME SCORECARD STATS ---");
     matchData.scorecard.innings.forEach((inning) => {
       contextLines.push(`\n[${inning.team} INNINGS: ${inning.total}/${inning.wickets} in ${inning.overs} overs]`);
@@ -487,6 +538,16 @@ export async function generateMatchRoast(
         contextLines.push(`- ${b.player}: ${b.overs} overs, ${b.runs} runs, ${b.wickets} wkts (Econ: ${b.economy})`);
       });
     });
+  } else {
+    // FALLBACK: Use Google Search Grounding to fetch the missing context
+    const aiSearchedContext = await fetchMissingContextViaSearch(
+      matchData.homeTeam,
+      matchData.awayTeam,
+      matchData.matchDate,
+      matchData.scoreSummary
+    );
+    contextLines.push("\n--- AI SEARCHED MATCH CONTEXT (Scorecard Missing) ---");
+    contextLines.push(aiSearchedContext);
   }
 
   const context = contextLines.join("\n");

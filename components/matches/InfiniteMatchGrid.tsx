@@ -64,9 +64,11 @@ export function InfiniteMatchGrid({ initialPage, year, selectedTeams }: Props) {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+        <div className="flex flex-wrap justify-center gap-8">
           {matches.map((match, i) => (
-            <MatchCard key={match.id} match={match} index={i} />
+            <div key={match.id} className="w-full md:w-[calc(50%-1rem)] xl:w-[calc(33.333%-1.334rem)] flex">
+              <MatchCard match={match} index={i} />
+            </div>
           ))}
         </div>
       )}

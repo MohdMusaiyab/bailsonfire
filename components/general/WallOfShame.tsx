@@ -65,7 +65,6 @@ export async function WallOfShame() {
         {match === null ? (
           /* ── EMPTY STATE ──────────────────────────────────────── */
           <div className="relative flex flex-col items-center justify-center py-20 rounded-3xl border border-dashed border-[#1A1A1A]/10 bg-white/40 text-center gap-5">
-            {/* flame icon placeholder */}
             <span
               className="text-5xl select-none opacity-30"
               aria-hidden="true"
@@ -105,7 +104,6 @@ export async function WallOfShame() {
         ) : (
           /* ── SPOTLIGHT CARD ───────────────────────────────────── */
           <div className="relative group">
-            {/* Glow halo behind card */}
             <div
               className="absolute -inset-px rounded-3xl bg-gradient-to-br from-[#1A1A1A]/8 via-transparent to-[#1A1A1A]/4 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
               aria-hidden="true"
@@ -115,14 +113,14 @@ export async function WallOfShame() {
               {/* Left accent bar — loser team colour */}
               {match.loser && (
                 <div
-                  className="absolute left-0 top-0 bottom-0 w-1 rounded-l-3xl"
+                  className="absolute left-0 top-0 bottom-0 w-1 md:w-1.5 rounded-l-3xl"
                   style={{ background: teamColor(match.loser) }}
                   aria-hidden="true"
                 />
               )}
 
               {/* ── MAIN CONTENT ─────────────────────────────────── */}
-              <div className="p-8 md:p-10 pl-10">
+              <div className="p-8 md:p-10 flex flex-col items-center md:items-start text-center md:text-left">
                 {/* Crown badge */}
                 <div className="inline-flex items-center gap-2 px-3 py-1 mb-6 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-[0.65rem] font-black tracking-widest uppercase">
                   <span aria-hidden="true">🏆</span>
@@ -130,7 +128,7 @@ export async function WallOfShame() {
                 </div>
 
                 {/* Teams */}
-                <div className="flex items-center gap-3 mb-3 flex-wrap">
+                <div className="flex items-center justify-center md:justify-start gap-3 mb-3 flex-wrap">
                   <span className="flex items-center gap-2 text-base font-black text-[#1A1A1A]">
                     <span
                       className="w-2 h-2 rounded-full shrink-0"
@@ -153,7 +151,7 @@ export async function WallOfShame() {
                 </div>
 
                 {/* Score */}
-                <p className="text-[1.05rem] font-black tracking-tight text-[#1A1A1A] mb-1">
+                <p className="text-[1.1rem] font-black tracking-tight text-[#1A1A1A] mb-1">
                   {match.scoreSummary}
                 </p>
 
@@ -170,7 +168,7 @@ export async function WallOfShame() {
 
                 {/* Roast excerpt */}
                 {match.summary && (
-                  <blockquote className="relative pl-4 border-l-2 border-[#1A1A1A]/10 mb-8">
+                  <blockquote className="relative px-4 md:pl-4 md:pr-0 border-x-0 md:border-x-0 md:border-l-2 border-[#1A1A1A]/10 mb-8 max-w-2xl">
                     <p className="text-[0.88rem] leading-relaxed text-[#1A1A1A]/60 italic">
                       {match.summary.content.length > 240
                         ? match.summary.content.slice(0, 237).trimEnd() +
@@ -181,7 +179,7 @@ export async function WallOfShame() {
                 )}
 
                 {/* Footer row */}
-                <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex items-center justify-center md:justify-start gap-4 flex-wrap">
                   <span className="inline-flex items-center gap-1.5 text-[0.72rem] font-semibold text-[#1A1A1A]/40">
                     🔥 {match.reactionsCount.toLocaleString()} reactions
                   </span>
@@ -214,7 +212,6 @@ export async function WallOfShame() {
           </div>
         )}
 
-        {/* Bottom hairline */}
         <div
           className="mt-24 h-px bg-gradient-to-r from-transparent via-[#1A1A1A]/6 to-transparent"
           aria-hidden="true"

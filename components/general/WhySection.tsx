@@ -97,7 +97,7 @@ export function WhySection() {
 
         {/* ── PILLARS ─────────────────────────────────────────────── */}
         <ul
-          className="grid grid-cols-1 md:grid-cols-3 gap-5 list-none p-0 m-0"
+          className="flex flex-wrap justify-center gap-6 list-none p-0 m-0"
           role="list"
         >
           {PILLARS.map((pillar, i) => (
@@ -108,8 +108,9 @@ export function WhySection() {
               whileInView="visible"
               viewport={{ once: true, margin: "-40px" }}
               variants={cardVariants}
+              className="flex w-full sm:w-[calc(50%-1.5rem)] lg:w-[calc(33.333%-1.5rem)]"
             >
-              <div className="group relative h-full p-8 bg-white border border-[#1A1A1A]/[0.06] rounded-2xl shadow-sm hover:-translate-y-1.5 hover:shadow-md transition-all duration-300">
+              <div className="group relative w-full p-8 bg-white border border-[#1A1A1A]/[0.06] rounded-2xl shadow-sm hover:-translate-y-1.5 hover:shadow-md transition-all duration-300">
                 {/* Number watermark */}
                 <span
                   className="absolute top-5 right-6 text-[4rem] font-black leading-none text-[#1A1A1A]/[0.04] select-none"

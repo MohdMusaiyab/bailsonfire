@@ -52,11 +52,11 @@ export async function RecentMatches() {
           </div>
         ) : (
           <ul
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 list-none p-0 m-0"
+            className="flex flex-wrap justify-center gap-6 list-none p-0 m-0"
             role="list"
           >
             {matches.map((match, i) => (
-              <li key={match.id} className="flex">
+              <li key={match.id} className="flex w-full sm:w-[calc(50%-1.5rem)] lg:w-[calc(33.333%-1.5rem)]">
                 <MatchCard match={match} index={i} />
               </li>
             ))}
