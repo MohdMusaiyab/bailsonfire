@@ -35,6 +35,14 @@ const KNOWN_TEAM_SHORTS: Record<string, string> = {
  * Derives a 3-4 letter abbreviation for a team name.
  */
 export function getTeamShortName(teamName: string): string {
+  if (!teamName) return "UNK";
+  const upper = teamName.toUpperCase().trim();
+
+  // Check if it's already a full name in our map
+  for (const [full, short] of Object.entries(KNOWN_TEAM_SHORTS)) {
+    if (full.toUpperCase() === upper) return short;
+  }
+  
   if (KNOWN_TEAM_SHORTS[teamName]) {
     return KNOWN_TEAM_SHORTS[teamName];
   }
@@ -47,6 +55,77 @@ export function getTeamShortName(teamName: string): string {
 
   // If it's a single word, just take the first 3 letters
   return teamName.substring(0, 3).toUpperCase();
+}
+
+/**
+ * Normalizes a team name to its full, official title.
+ * Handles abbreviations (RCB, MI) and historical variants (Kings XI Punjab).
+ */
+export function normalizeTeamName(name: string): string {
+  if (!name) return "Unknown Team";
+  
+  const upper = name.toUpperCase().trim();
+
+  // 1. Check if it's already a full name in our map (case-insensitive check)
+  for (const fullName of Object.keys(KNOWN_TEAM_SHORTS)) {
+    if (fullName.toUpperCase() === upper) return fullName;
+  }
+
+  // 2. Check if it's a known abbreviation
+  for (const [fullName, short] of Object.entries(KNOWN_TEAM_SHORTS)) {
+    if (short === upper) return fullName;
+  }
+
+  // 3. Handle common manual abbreviations not in KNOWN_TEAM_SHORTS
+  const commonVariants: Record<string, string> = {
+    "KXIP": "Punjab Kings",
+    "DD": "Delhi Capitals",
+    "DCG": "Deccan Chargers",
+    "RPS": "Rising Pune Supergiant",
+    "GL": "Gujarat Lions",
+    "PWI": "Pune Warriors",
+    "KTK": "Kochi Tuskers Kerala",
+  };
+
+  if (commonVariants[upper]) return commonVariants[upper];
+
+  return name;
+}
+
+/**
+ * Replaces full team names in a score summary string with their abbreviations.
+ * Example: "Royal Challengers Bengaluru 187/4 beat Mumbai Indians 183/6" 
+ *       -> "RCB 187/4 beat MI 183/6"
+ */
+export function shortenTeamNamesInSummary(summary: string): string {
+  if (!summary) return "";
+  
+  let result = summary;
+  
+  // Sort by length descending to ensure "Royal Challengers Bengaluru" is replaced 
+  // before "Royal Challengers" (if that ever happens)
+  const fullNames = Object.keys(KNOWN_TEAM_SHORTS).sort((a, b) => b.length - a.length);
+  
+  for (const fullName of fullNames) {
+    const short = KNOWN_TEAM_SHORTS[fullName];
+    // Use regex for case-insensitive global replacement with word boundaries
+    const regex = new RegExp(`\\b${fullName}\\b`, 'gi');
+    result = result.replace(regex, short);
+  }
+
+  // Also replace some common alternate spellings manually
+  const extraReplacements: Record<string, string> = {
+    "Royal Challengers Bangalore": "RCB",
+    "Kings XI Punjab": "PBKS",
+    "Delhi Daredevils": "DC",
+  };
+
+  for (const [full, short] of Object.entries(extraReplacements)) {
+    const regex = new RegExp(`\\b${full}\\b`, 'gi');
+    result = result.replace(regex, short);
+  }
+  
+  return result;
 }
 
 /**
