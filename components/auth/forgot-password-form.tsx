@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -13,7 +13,9 @@ import { useForgotPasswordStore } from "@/hooks/use-forgot-password-store";
 
 export function ForgotPasswordForm() {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const [isSending, setIsSending] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
@@ -30,6 +32,8 @@ export function ForgotPasswordForm() {
     setVerified,
     timestamp,
     setTimestamp,
+    lastSentAt,
+    setLastSentAt,
     resetMode,
   } = useForgotPasswordStore();
 
@@ -37,29 +41,38 @@ export function ForgotPasswordForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   // Step 1: Request OTP
-  const onRequestOTP = (e: React.FormEvent) => {
+  const onRequestOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
-    startTransition(async () => {
+    setIsSending(true);
+
+    try {
       const result = await requestPasswordResetOTP(email);
       if (result.success) {
         setSuccess(result.message);
         setStep("OTP");
-        setTimestamp(Date.now()); // Start the 10-minute timer
+        setTimestamp(Date.now());
+        setLastSentAt(Date.now());
         setResendCooldown(60);
       } else {
         setError(result.message);
       }
-    });
+    } catch (err) {
+      setError("Failed to send code. Please try again.");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   // Step 2: Verify OTP
-  const onVerifyOTP = (e: React.FormEvent) => {
+  const onVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
-    startTransition(async () => {
+    setIsVerifying(true);
+
+    try {
       const result = await verifyPasswordResetOTP(email, otp);
       if (result.success) {
         setSuccess(result.message);
@@ -68,11 +81,15 @@ export function ForgotPasswordForm() {
       } else {
         setError(result.message);
       }
-    });
+    } catch (err) {
+      setError("Verification failed. Please try again.");
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
   // Step 3: Execute Reset
-  const onResetPassword = (e: React.FormEvent) => {
+  const onResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
@@ -85,7 +102,9 @@ export function ForgotPasswordForm() {
 
     setError(null);
     setSuccess(null);
-    startTransition(async () => {
+    setIsResetting(true);
+
+    try {
       const result = await executePasswordReset(email, otp, password);
       if (result.success) {
         setSuccess(result.message);
@@ -96,10 +115,14 @@ export function ForgotPasswordForm() {
       } else {
         setError(result.message);
       }
-    });
+    } catch (err) {
+      setError("Failed to reset password. Please try again.");
+    } finally {
+      setIsResetting(false);
+    }
   };
 
-  // Auto-clear stale state (older than 10 mins) on mount
+  // Auto-clear stale state (older than 10 mins) and sync cooldown on mount
   useEffect(() => {
     if (timestamp) {
       const tenMinutes = 10 * 60 * 1000;
@@ -107,7 +130,15 @@ export function ForgotPasswordForm() {
         resetMode();
       }
     }
-  }, [timestamp, resetMode]);
+
+    // Sync cooldown from persisted lastSentAt
+    if (lastSentAt) {
+      const secondsPassed = Math.floor((Date.now() - lastSentAt) / 1000);
+      if (secondsPassed < 60) {
+        setResendCooldown(60 - secondsPassed);
+      }
+    }
+  }, [timestamp, lastSentAt, resetMode]);
 
   // Cooldown Timer
   useEffect(() => {
@@ -212,12 +243,12 @@ export function ForgotPasswordForm() {
               )}
               <motion.button
                 type="submit"
-                disabled={isPending || !email}
+                disabled={isSending || !email}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="w-full py-3 px-4 text-white font-bold rounded-lg bg-[#1A1A1A] hover:bg-[#2A2A2A] disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#1A1A1A]/20"
               >
-                {isPending ? "Sending..." : "Send Reset Code"}
+                {isSending ? "Sending..." : "Send Reset Code"}
               </motion.button>
             </form>
           )}
@@ -251,22 +282,24 @@ export function ForgotPasswordForm() {
               )}
               <motion.button
                 type="submit"
-                disabled={isPending || otp.length !== 6}
+                disabled={isVerifying || otp.length !== 6}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="w-full py-3 px-4 text-white font-bold rounded-lg bg-[#1A1A1A] hover:bg-[#2A2A2A] disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#1A1A1A]/20"
               >
-                {isPending ? "Verifying..." : "Verify & Continue"}
+                {isVerifying ? "Verifying..." : "Verify & Continue"}
               </motion.button>
 
               <div className="text-center">
                 <button
                   type="button"
-                  disabled={resendCooldown > 0 || isPending}
+                  disabled={resendCooldown > 0 || isSending}
                   onClick={onRequestOTP}
                   className="text-sm font-medium text-[#1A1A1A]/70 hover:text-[#1A1A1A] disabled:text-[#1A1A1A]/30 disabled:cursor-not-allowed transition-colors"
                 >
-                  {resendCooldown > 0
+                  {isSending
+                    ? "Sending..."
+                    : resendCooldown > 0
                     ? `Resend available in ${resendCooldown}s`
                     : "Didn't get a code? Resend"}
                 </button>
@@ -318,13 +351,13 @@ export function ForgotPasswordForm() {
               <motion.button
                 type="submit"
                 disabled={
-                  isPending || !password || password !== confirmPassword
+                  isResetting || !password || password !== confirmPassword
                 }
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="w-full py-3 px-4 text-white font-bold rounded-lg bg-[#1A1A1A] hover:bg-[#2A2A2A] disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#1A1A1A]/20"
               >
-                {isPending ? "Updating..." : "Update Password"}
+                {isResetting ? "Updating..." : "Update Password"}
               </motion.button>
             </form>
           )}

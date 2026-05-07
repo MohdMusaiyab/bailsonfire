@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { requestVerificationOTP, verifyEmailOTP } from "@/lib/actions/auth-actions";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -16,7 +16,8 @@ export function VerifyEmailForm({ email, isSessionAuth }: VerifyEmailFormProps) 
   const router = useRouter();
   const { update } = useSession();
   
-  const [isPending, startTransition] = useTransition();
+  const [isSending, setIsSending] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const [otp, setOtp] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -24,14 +25,15 @@ export function VerifyEmailForm({ email, isSessionAuth }: VerifyEmailFormProps) 
   
   // If we arrived from sign-up, the code was already sent once. 
   // We'll default hasSentCode to true so they see the input immediately.
-  const [hasSentCode, setHasSentCode] = useState(true);
+  const [hasSentCode, setHasSentCode] = useState(false);
 
   // Handle Request/Resend OTP
-  const onSendCode = () => {
+  const onSendCode = async () => {
     setError(null);
     setSuccess(null);
-    startTransition(async () => {
-      // Pass the email explicitly to the server action
+    setIsSending(true);
+
+    try {
       const result = await requestVerificationOTP(email);
       
       if (result.success) {
@@ -45,7 +47,11 @@ export function VerifyEmailForm({ email, isSessionAuth }: VerifyEmailFormProps) 
           setResendCooldown(seconds > 0 ? seconds : 0);
         }
       }
-    });
+    } catch (err) {
+      setError("Failed to send code. Please try again.");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   // Handle OTP Verification
@@ -59,14 +65,14 @@ export function VerifyEmailForm({ email, isSessionAuth }: VerifyEmailFormProps) 
 
     setError(null);
     setSuccess(null);
+    setIsVerifying(true);
     
-    startTransition(async () => {
+    try {
       const result = await verifyEmailOTP(otp, email);
       
       if (result.success) {
         setSuccess("Email successfully verified!");
         
-        // If user is logged in, refresh the session so the UI updates
         if (isSessionAuth) {
           try {
             await update({});
@@ -76,13 +82,16 @@ export function VerifyEmailForm({ email, isSessionAuth }: VerifyEmailFormProps) 
         }
 
         setTimeout(() => {
-          // Hard redirect to clear state and refresh all server components
-          window.location.href = isSessionAuth ? "/" : "/auth/sign-in?verified=true";
-        }, 1500);
+          window.location.href = "/";
+        }, 500);
       } else {
         setError(result.message);
       }
-    });
+    } catch (err) {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
   // Cooldown Timer Logic
@@ -125,65 +134,90 @@ export function VerifyEmailForm({ email, isSessionAuth }: VerifyEmailFormProps) 
               </span>
             </h2>
             <p className="text-[#4A4A4A] text-sm font-medium">
-              Enter the code sent to <br/>
-              <span className="text-[#1A1A1A] font-bold">{email}</span>
+              {hasSentCode ? (
+                <>
+                  Enter the code sent to <br />
+                  <span className="text-[#1A1A1A] font-bold">{email}</span>
+                </>
+              ) : (
+                <>
+                  Ready to roast? Send a code to <br />
+                  <span className="text-[#1A1A1A] font-bold">{email}</span>
+                </>
+              )}
             </p>
           </div>
 
-          <form onSubmit={onVerify} className="space-y-4">
-            <div>
-              <input
-                type="text"
-                maxLength={6}
-                value={otp}
-                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                placeholder="000000"
-                className="w-full text-center text-3xl tracking-[0.4em] font-mono py-4 bg-white border border-[#1A1A1A]/20 rounded-xl focus:ring-2 focus:ring-[#1A1A1A]/30 focus:border-[#1A1A1A] outline-none transition-all text-[#1A1A1A]"
-                disabled={isPending}
-                required
-                autoFocus
-              />
-            </div>
-
-            {error && (
-              <div className="p-3 text-sm text-red-600 bg-red-50/80 backdrop-blur-sm rounded-lg border border-red-200 text-center">
-                {error}
-              </div>
-            )}
-            {success && (
-              <div className="p-3 text-sm text-emerald-700 bg-emerald-50/80 backdrop-blur-sm rounded-lg border border-emerald-200 text-center">
-                {success}
-              </div>
-            )}
-
+          {!hasSentCode ? (
             <motion.button
-              type="submit"
-              disabled={isPending || otp.length !== 6}
+              onClick={onSendCode}
+              disabled={isSending}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className="w-full py-4 px-4 text-white font-bold rounded-xl bg-[#1A1A1A] hover:bg-[#2A2A2A] disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#1A1A1A]/20"
             >
-              {isPending ? "Verifying..." : "Verify Code"}
+              {isSending ? "Sending Code..." : "Send Verification Code"}
             </motion.button>
+          ) : (
+            <form onSubmit={onVerify} className="space-y-4">
+              <div>
+                <input
+                  type="text"
+                  maxLength={6}
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                  placeholder="000000"
+                  className="w-full text-center text-3xl tracking-[0.4em] font-mono py-4 bg-white border border-[#1A1A1A]/20 rounded-xl focus:ring-2 focus:ring-[#1A1A1A]/30 focus:border-[#1A1A1A] outline-none transition-all text-[#1A1A1A]"
+                  disabled={isVerifying || isSending}
+                  required
+                  autoFocus
+                />
+              </div>
 
-            <div className="flex justify-center pt-2">
-              <button
-                type="button"
-                onClick={onSendCode}
-                disabled={isPending || resendCooldown > 0}
-                className="text-sm font-medium text-[#1A1A1A]/70 hover:text-[#1A1A1A] transition-colors disabled:text-[#1A1A1A]/30 disabled:cursor-not-allowed"
+              {error && (
+                <div className="p-3 text-sm text-red-600 bg-red-50/80 backdrop-blur-sm rounded-lg border border-red-200 text-center">
+                  {error}
+                </div>
+              )}
+              {success && (
+                <div className="p-3 text-sm text-emerald-700 bg-emerald-50/80 backdrop-blur-sm rounded-lg border border-emerald-200 text-center">
+                  {success}
+                </div>
+              )}
+
+              <motion.button
+                type="submit"
+                disabled={isVerifying || isSending || otp.length !== 6}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full py-4 px-4 text-white font-bold rounded-xl bg-[#1A1A1A] hover:bg-[#2A2A2A] disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#1A1A1A]/20"
               >
-                {resendCooldown > 0 ? `Resend available in ${resendCooldown}s` : "Didn't receive a code? Resend"}
-              </button>
-            </div>
-          </form>
+                {isVerifying ? "Verifying..." : "Verify Code"}
+              </motion.button>
+
+              <div className="flex justify-center pt-2">
+                <button
+                  type="button"
+                  onClick={onSendCode}
+                  disabled={isVerifying || isSending || resendCooldown > 0}
+                  className="text-sm font-medium text-[#1A1A1A]/70 hover:text-[#1A1A1A] transition-colors disabled:text-[#1A1A1A]/30 disabled:cursor-not-allowed"
+                >
+                  {isSending
+                    ? "Sending code..."
+                    : resendCooldown > 0
+                    ? `Resend available in ${resendCooldown}s`
+                    : "Didn't receive a code? Resend"}
+                </button>
+              </div>
+            </form>
+          )}
 
           <div className="flex flex-col items-center gap-3 pt-2 border-t border-[#1A1A1A]/5">
              <Link
-              href="/auth/sign-in"
+              href="/"
               className="text-sm text-[#1A1A1A]/60 hover:text-[#1A1A1A] transition-colors font-medium"
             >
-              Back to Sign In
+              Back to Home Page
             </Link>
           </div>
         </div>

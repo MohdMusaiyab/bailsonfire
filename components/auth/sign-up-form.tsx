@@ -42,8 +42,8 @@ export function SignUpForm() {
 
       setSuccess(result.message);
       setTimeout(() => {
-        router.push(`/auth/verify-email?email=${encodeURIComponent(data.email)}`);
-      }, 2000);
+        router.push(`/auth/sign-in`);
+      }, 1000);
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
