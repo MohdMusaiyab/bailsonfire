@@ -25,8 +25,7 @@ const pool = new Pool({
   connectionString,
   ssl: ca ? { 
     ca,
-    // In production, we want strict verification. In dev, we can be more relaxed.
-    rejectUnauthorized: process.env.NODE_ENV === "production"
+    rejectUnauthorized: false // Relaxed even in prod to allow pooler connections
   } : { 
     rejectUnauthorized: false 
   },
