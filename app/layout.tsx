@@ -19,6 +19,7 @@ export const metadata: Metadata = {
 
 import { SessionProvider } from "@/components/providers/session-provider";
 import { VerificationWarning } from "@/components/auth/verification-warning";
+import { Navbar } from "@/components/general/Navbar";
 
 export default function RootLayout({
   children,
@@ -30,8 +31,9 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col bg-[#FCFBF7]">
         <SessionProvider>
+          <Navbar />
           <VerificationWarning />
           {children}
         </SessionProvider>

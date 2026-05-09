@@ -58,7 +58,7 @@ const Hero = () => {
               <span className="absolute inline-flex w-full h-full rounded-full opacity-75 animate-ping bg-emerald-400" />
               <span className="relative inline-flex w-2 h-2 rounded-full bg-emerald-500" />
             </span>
-            IPL 2026 Season Coverage
+            Exquisite IPL 2026 Critiques
           </motion.div>
 
           {/* Headline */}
@@ -73,8 +73,8 @@ const Hero = () => {
               FIRE
             </span>
             <br />
-            <span className="text-3xl md:text-5xl lg:text-6xl font-light italic tracking-tight text-[#1A1A1A]/60 block mt-4">
-              Scorching Every Stance.
+            <span className="text-3xl md:text-5xl lg:text-5xl font-light italic tracking-tight text-[#1A1A1A]/50 block mt-4 font-serif">
+              A Masterclass in Middle-Order Collapses.
             </span>
           </motion.h1>
 
@@ -85,9 +85,7 @@ const Hero = () => {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="mb-14 text-lg md:text-xl font-medium leading-relaxed text-[#1A1A1A]/50 max-w-2xl mx-auto"
           >
-            Real-time AI-generated summaries that don{"\u2019"}t pull any
-            punches. Witness the legendary collapses and lucky wins of IPL 2026
-            with zero mercy.
+            Experience the IPL season through a lens of unadulterated, AI-crafted cynicism. We eloquently dissect catastrophic drops, inexplicable captaincy, and batting line-ups that fold faster than a cheap suit.
           </motion.p>
 
           {/* CTA group */}
@@ -107,7 +105,7 @@ const Hero = () => {
               "
             >
               <span className="relative z-10 flex items-center">
-                Explore 2026 Scorches
+                Savor the Collapses
                 <svg
                   className="w-4 h-4 ml-3 transition-transform group-hover:translate-x-1"
                   fill="none"
@@ -133,7 +131,7 @@ const Hero = () => {
                 transition-all hover:bg-white hover:border-[#1A1A1A]/20 hover:shadow-xl hover:shadow-black/5
               "
             >
-              Wall of Shame
+              The Gallery of Shame
             </Link>
           </motion.div>
         </div>
