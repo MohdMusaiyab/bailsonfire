@@ -1,0 +1,47 @@
+🔒 [PRISMA] SSL CA certificate loaded.
+==================================================
+🔥 ROAST QUALITY TESTER — LATEST DB MATCH
+==================================================
+prisma:query SELECT "public"."Match"."id", "public"."Match"."externalId", "public"."Match"."homeTeam", "public"."Match"."awayTeam", "public"."Match"."scoreSummary", "public"."Match"."matchDate", "public"."Match"."venue", "public"."Match"."winner", "public"."Match"."loser", "public"."Match"."playerOfTheMatch", "public"."Match"."scorecard" FROM "public"."Match" WHERE 1=1 ORDER BY "public"."Match"."matchDate" DESC LIMIT $1 OFFSET $2
+
+🎯 Latest Match:
+   Teams   : Rajasthan Royals vs Gujarat Titans
+   Date    : 2026-05-09
+   Venue   : Sawai Mansingh Stadium, Jaipur
+   Score   : GT 229/4 (20 ov) | RR 152/10 (16.3 ov)
+   Winner  : Gujarat Titans
+   MoM     : N/A
+   ID      : 2026-05-09_GT_v_RR
+prisma:query SELECT "public"."Match"."id", "public"."Match"."externalId", "public"."Match"."homeTeam", "public"."Match"."awayTeam", "public"."Match"."scoreSummary", "public"."Match"."matchDate", "public"."Match"."venue", "public"."Match"."winner", "public"."Match"."loser", "public"."Match"."playerOfTheMatch", "public"."Match"."keyMoments", "public"."Match"."scorecard", "public"."Match"."createdAt", "public"."Match"."updatedAt" FROM "public"."Match" WHERE (("public"."Match"."homeTeam" = $1 OR "public"."Match"."awayTeam" = $2) AND "public"."Match"."matchDate" >= $3 AND "public"."Match"."matchDate" <= $4) ORDER BY "public"."Match"."matchDate" ASC OFFSET $5
+prisma:query SELECT "public"."Match"."id", "public"."Match"."externalId", "public"."Match"."homeTeam", "public"."Match"."awayTeam", "public"."Match"."scoreSummary", "public"."Match"."matchDate", "public"."Match"."venue", "public"."Match"."winner", "public"."Match"."loser", "public"."Match"."playerOfTheMatch", "public"."Match"."keyMoments", "public"."Match"."scorecard", "public"."Match"."createdAt", "public"."Match"."updatedAt" FROM "public"."Match" WHERE (("public"."Match"."homeTeam" = $1 OR "public"."Match"."awayTeam" = $2) AND "public"."Match"."matchDate" >= $3 AND "public"."Match"."matchDate" <= $4) ORDER BY "public"."Match"."matchDate" ASC OFFSET $5
+
+📈 Season Stats (2026):
+   Rajasthan Royals    : 6 Wins (11 played), Streak: L2
+   Gujarat Titans      : 7 Wins (11 played), Streak: W4
+
+📊 Scorecard (raw from DB):
+
+   Inning 1: Gujarat Titans — 229/4 (20 ov)
+   Batting rows : 6
+   Bowling rows : 6
+
+   Inning 2: Rajasthan Royals — 152/10 (16.3 ov)
+   Batting rows : 11
+   Bowling rows : 6
+
+🤖 Sending to Gemini for roast generation...
+
+[GEMINI] Generating roast for Rajasthan Royals vs Gujarat Titans (2026)...
+
+🎭 [GEMINI PERSONA SELECTED]: The Sarcastic Neighborhood "Tau" (Unflinching Indian Relative)
+🖌️  [GEMINI STYLE SELECTED]: Satirical Desi-Fusion (Hinglish Slapstick)
+
+==================================================
+🔥 GENERATED ROAST
+==================================================
+Arre, Rajasthan Royals! Yeh kya naatak chal raha hai? Sawai Mansingh Stadium tha ya Shaadi ka mandap jahaan sab dulahe ki tarah bas khade the, koi run nahi bana raha tha? GT ne 229 thok diye, aur tumhara batting order aise gira jaise koi 2G internet connection! Jaiswal, Hetmyer, Archer... inka strike rate dekh ke lag raha tha sab IPL nahi, antakshari khel rahe hain! Vaibhav aur Jurel ne thodi koshish ki, lekin baaki toh aise dikh rahe the jaise unko pata hi nahi ball gol hoti hai. Tumhari bowling? Archer aur Deshpande ne runs aise diye jaise sarkari bank mein loan bat rahe hon, sab ko free mein! Kya fayda 2008 ki trophy ka jab har saal aise 'one-hit wonder' banke reh jaate ho? Lagta hai 2016-17 ke betting ban se kuch seekha nahi, ab toh field pe hi 'match fixing' kar rahe ho khud ki taraf se! Shubman Gill aur uski team ne aake dikha diya ki 'new kids' bhi purane 'legend' ko kaise 'YouTube search history' bana sakte hain. Agli baar Jaipur mein stadium nahi, koi golgappe ki dukan khol lo, shayad udhar customer ban jayenge!
+==================================================
+
+📏 Roast length: 1036 characters
+✅ No changes saved to the database.
+[DB] Connection closed.

@@ -1,0 +1,257 @@
+🔒 [PRISMA] SSL CA certificate loaded.
+prisma:query SELECT "public"."Match"."id", "public"."Match"."externalId", "public"."Match"."homeTeam", "public"."Match"."awayTeam", "public"."Match"."scoreSummary", "public"."Match"."matchDate", "public"."Match"."venue", "public"."Match"."winner", "public"."Match"."loser", "public"."Match"."playerOfTheMatch", "public"."Match"."scorecard" FROM "public"."Match" WHERE "public"."Match"."matchDate" >= $1 ORDER BY "public"."Match"."matchDate" ASC LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."Match"."id", "public"."Match"."externalId", "public"."Match"."homeTeam", "public"."Match"."awayTeam", "public"."Match"."scoreSummary", "public"."Match"."matchDate", "public"."Match"."venue", "public"."Match"."winner", "public"."Match"."loser", "public"."Match"."playerOfTheMatch", "public"."Match"."keyMoments", "public"."Match"."scorecard", "public"."Match"."createdAt", "public"."Match"."updatedAt" FROM "public"."Match" WHERE (("public"."Match"."homeTeam" = $1 OR "public"."Match"."awayTeam" = $2) AND "public"."Match"."matchDate" >= $3 AND "public"."Match"."matchDate" <= $4) ORDER BY "public"."Match"."matchDate" ASC OFFSET $5
+prisma:query SELECT "public"."Match"."id", "public"."Match"."externalId", "public"."Match"."homeTeam", "public"."Match"."awayTeam", "public"."Match"."scoreSummary", "public"."Match"."matchDate", "public"."Match"."venue", "public"."Match"."winner", "public"."Match"."loser", "public"."Match"."playerOfTheMatch", "public"."Match"."keyMoments", "public"."Match"."scorecard", "public"."Match"."createdAt", "public"."Match"."updatedAt" FROM "public"."Match" WHERE (("public"."Match"."homeTeam" = $1 OR "public"."Match"."awayTeam" = $2) AND "public"."Match"."matchDate" >= $3 AND "public"."Match"."matchDate" <= $4) ORDER BY "public"."Match"."matchDate" ASC OFFSET $5
+=== EXACT AI PAYLOAD FOR 2026 MATCH ===
+{
+  "matchFound": true,
+  "externalId": "2026-03-28_RCB_v_SRH",
+  "homeTeam": "Sunrisers Hyderabad",
+  "awayTeam": "Royal Challengers Bengaluru",
+  "homeTeamShort": "SRH",
+  "awayTeamShort": "RCB",
+  "scoreSummary": "Sunrisers Hyderabad 201/9 (20 ov) | Royal Challengers Bengaluru 203/4 (15.4 ov)",
+  "matchStatus": "Royal Challengers Bengaluru won the match",
+  "venue": "M Chinnaswamy Stadium, Bengaluru",
+  "winner": "Royal Challengers Bengaluru",
+  "loser": "Sunrisers Hyderabad",
+  "matchDate": "2026-03-28T00:00:00.000Z",
+  "playerOfMatch": "JA Duffy",
+  "scorecard": {
+    "innings": [
+      {
+        "team": "Sunrisers Hyderabad",
+        "overs": 20,
+        "total": 201,
+        "batting": [
+          {
+            "out": "out",
+            "runs": 11,
+            "balls": 9,
+            "player": "TM Head",
+            "strikeRate": 122.22
+          },
+          {
+            "out": "out",
+            "runs": 7,
+            "balls": 8,
+            "player": "Abhishek Sharma",
+            "strikeRate": 87.5
+          },
+          {
+            "out": "out",
+            "runs": 80,
+            "balls": 38,
+            "player": "Ishan Kishan",
+            "strikeRate": 210.53
+          },
+          {
+            "out": "out",
+            "runs": 1,
+            "balls": 6,
+            "player": "Nithish Kumar Reddy",
+            "strikeRate": 16.67
+          },
+          {
+            "out": "out",
+            "runs": 31,
+            "balls": 22,
+            "player": "H Klaasen",
+            "strikeRate": 140.91
+          },
+          {
+            "out": "out",
+            "runs": 9,
+            "balls": 6,
+            "player": "S Arora",
+            "strikeRate": 150
+          },
+          {
+            "out": "out",
+            "runs": 43,
+            "balls": 18,
+            "player": "Aniket Verma",
+            "strikeRate": 238.89
+          },
+          {
+            "out": "out",
+            "runs": 3,
+            "balls": 3,
+            "player": "Harsh Dubey",
+            "strikeRate": 100
+          },
+          {
+            "out": "out",
+            "runs": 0,
+            "balls": 2,
+            "player": "HV Patel",
+            "strikeRate": 0
+          },
+          {
+            "out": "not out",
+            "runs": 6,
+            "balls": 5,
+            "player": "DA Payne",
+            "strikeRate": 120
+          },
+          {
+            "out": "not out",
+            "runs": 4,
+            "balls": 3,
+            "player": "JD Unadkat",
+            "strikeRate": 133.33
+          }
+        ],
+        "bowling": [
+          {
+            "runs": 22,
+            "overs": 4,
+            "player": "JA Duffy",
+            "economy": 5.5,
+            "wickets": 3
+          },
+          {
+            "runs": 31,
+            "overs": 4,
+            "player": "B Kumar",
+            "economy": 7.75,
+            "wickets": 1
+          },
+          {
+            "runs": 38,
+            "overs": 3,
+            "player": "Abhinandan Singh",
+            "economy": 12.67,
+            "wickets": 1
+          },
+          {
+            "runs": 54,
+            "overs": 4,
+            "player": "R Shepherd",
+            "economy": 13.5,
+            "wickets": 3
+          },
+          {
+            "runs": 28,
+            "overs": 3,
+            "player": "Suyash Sharma",
+            "economy": 9.33,
+            "wickets": 1
+          },
+          {
+            "runs": 26,
+            "overs": 2,
+            "player": "KH Pandya",
+            "economy": 13,
+            "wickets": 0
+          }
+        ],
+        "wickets": 9
+      },
+      {
+        "team": "Royal Challengers Bengaluru",
+        "overs": 15.4,
+        "total": 203,
+        "batting": [
+          {
+            "out": "out",
+            "runs": 8,
+            "balls": 7,
+            "player": "PD Salt",
+            "strikeRate": 114.29
+          },
+          {
+            "out": "out",
+            "runs": 61,
+            "balls": 26,
+            "player": "D Padikkal",
+            "strikeRate": 234.62
+          },
+          {
+            "out": "not out",
+            "runs": 69,
+            "balls": 38,
+            "player": "V Kohli",
+            "strikeRate": 181.58
+          },
+          {
+            "out": "out",
+            "runs": 31,
+            "balls": 12,
+            "player": "RM Patidar",
+            "strikeRate": 258.33
+          },
+          {
+            "out": "out",
+            "runs": 0,
+            "balls": 1,
+            "player": "JM Sharma",
+            "strikeRate": 0
+          },
+          {
+            "out": "not out",
+            "runs": 16,
+            "balls": 10,
+            "player": "TH David",
+            "strikeRate": 160
+          }
+        ],
+        "bowling": [
+          {
+            "runs": 19,
+            "overs": 2,
+            "player": "Nithish Kumar Reddy",
+            "economy": 9.5,
+            "wickets": 0
+          },
+          {
+            "runs": 29,
+            "overs": 3,
+            "player": "JD Unadkat",
+            "economy": 9.67,
+            "wickets": 1
+          },
+          {
+            "runs": 35,
+            "overs": 3,
+            "player": "DA Payne",
+            "economy": 11.67,
+            "wickets": 2
+          },
+          {
+            "runs": 35,
+            "overs": 3,
+            "player": "Harsh Dubey",
+            "economy": 11.67,
+            "wickets": 1
+          },
+          {
+            "runs": 35,
+            "overs": 2,
+            "player": "E Malinga",
+            "economy": 17.5,
+            "wickets": 0
+          },
+          {
+            "runs": 39,
+            "overs": 2.4,
+            "player": "HV Patel",
+            "economy": 14.63,
+            "wickets": 0
+          }
+        ],
+        "wickets": 4
+      }
+    ]
+  },
+  "homeTeamStats": {
+    "wins": 7,
+    "played": 11,
+    "streak": "W1"
+  },
+  "awayTeamStats": {
+    "wins": 6,
+    "played": 10,
+    "streak": "L1"
+  }
+}

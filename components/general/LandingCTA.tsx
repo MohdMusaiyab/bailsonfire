@@ -74,7 +74,7 @@ export function LandingCTA() {
           className="flex flex-col sm:flex-row items-center justify-center gap-4"
         >
           <Link
-            href="/auth/signin"
+            href="/auth/sign-in"
             className="
               group relative px-8 py-4 font-bold rounded-lg overflow-hidden
               transition-all hover:scale-[1.02] active:scale-[0.98]
