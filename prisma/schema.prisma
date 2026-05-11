@@ -92,10 +92,11 @@ model Match {
 }
 
 model Summary {
-  id      String @id @default(cuid())
-  matchId String
-  content String @db.Text
-  aiModel String // e.g., gemini-2.0-flash
+  id       String  @id @default(cuid())
+  matchId  String
+  headline String? @db.Text
+  content  String  @db.Text
+  aiModel  String // e.g., gemini-2.0-flash
 
   match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
 

@@ -23,6 +23,7 @@ import { ZodError } from "zod";
 import { fetchRecentIPLMatch } from "../lib/ai/cricapi.js";
 import { generateMatchRoast } from "../lib/ai/gemini.js";
 import { AIResponseMatchSchema } from "../lib/validations/models.js";
+import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma.js";
 
 // ---------------------------------------------------------------------------
@@ -100,7 +101,7 @@ async function runIngestion(): Promise<void> {
     // ── Stage 5: Generate roast then write to DB atomically ──────────────────
     console.log("\n[5/5] Generating roast and writing to database...");
 
-    const roastContent = await generateMatchRoast(validated);
+    const { headline, roast: roastContent } = await generateMatchRoast(validated);
     console.log("     ✅ Roast generated.");
 
     // Use a Prisma nested create — Match + Summary in a single round-trip.
@@ -118,10 +119,11 @@ async function runIngestion(): Promise<void> {
         winner: validated.winner ?? null,
         loser: validated.loser ?? null,
         matchDate: new Date(validated.matchDate),
-        scorecard: validated.scorecard ? (validated.scorecard as import("@prisma/client").Prisma.InputJsonValue) : undefined, // Save full scorecard JSON to DB
+        scorecard: validated.scorecard ? (validated.scorecard as Prisma.InputJsonValue) : undefined, // Save full scorecard JSON to DB
         // Nested create — Summary belongs to this Match, created atomically
         summaries: {
           create: {
+            headline,
             content: roastContent,
             aiModel: "gemini-2.5-flash / gemini-2.5-flash-lite",
           },
@@ -144,7 +146,9 @@ async function runIngestion(): Promise<void> {
     console.log(`   ExternalId: ${savedMatch.externalId}`);
     console.log(`   Teams     : ${savedMatch.homeTeam} vs ${savedMatch.awayTeam}`);
     console.log(`   Saved at  : ${savedMatch.createdAt.toISOString()}`);
-    console.log("\n── Roast Preview ─────────────────────────────────");
+    console.log("\n── Headline ──────────────────────────────────────");
+    console.log(headline);
+    console.log("── Roast Preview ─────────────────────────────────");
     console.log(roastContent);
     console.log("──────────────────────────────────────────────────");
   } catch (error: unknown) {

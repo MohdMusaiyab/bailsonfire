@@ -33,7 +33,7 @@ export async function getMatchDetail(
       summaries: {
         take: 1,
         orderBy: { createdAt: 'desc' },
-        select: { id: true, content: true, aiModel: true },
+        select: { id: true, headline: true, content: true, aiModel: true },
       },
       // Always select reactions, but filter by userId (fallback to empty string if guest)
       // This ensures the property exists on the 'row' type consistently.

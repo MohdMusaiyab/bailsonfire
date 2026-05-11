@@ -97,6 +97,25 @@ interface MatchInfoResponse {
   status: string;
 }
 
+interface CricScoreMatch {
+  id: string;
+  dateTimeGMT: string;
+  matchType: string;
+  status: string;
+  ms: string; // "result" or "live"
+  t1: string; // "Team Name [SHORT]"
+  t2: string;
+  t1s: string; // "187/4 (20)"
+  t2s: string;
+  series: string;
+}
+
+interface CricScoreResponse {
+  apikey: string;
+  data: CricScoreMatch[];
+  status: string;
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -237,16 +256,55 @@ async function fetchFullMatchData(match: CricApiMatch): Promise<Extract<AIRespon
 // Batch Fetcher (Exported)
 // ---------------------------------------------------------------------------
 
-export async function fetchNewIPLMatches(): Promise<Extract<AIResponseMatchPayload, { matchFound: true }>[]> {
+async function fetchCurrentMatchesIPL(): Promise<CricApiMatch[]> {
   const url = `${BASE_URL}/currentMatches?apikey=${getApiKey()}&offset=0`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`[CRICAPI] HTTP ${res.status}`);
   const body = (await res.json()) as CurrentMatchesResponse;
   
-  // 1. Filter to completed IPL matches
-  const completedIPL = body.data.filter((m) => 
+  return body.data.filter((m) => 
     m.name.toLowerCase().includes("indian premier league") && m.matchEnded === true
   );
+}
+
+async function fetchCricScoreIPL(): Promise<CricApiMatch[]> {
+  const url = `${BASE_URL}/cricScore?apikey=${getApiKey()}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`[CRICAPI] HTTP ${res.status}`);
+  const body = (await res.json()) as CricScoreResponse;
+
+  // Filter to completed IPL matches
+  const filtered = body.data.filter((m) => 
+    m.series.toLowerCase().includes("indian premier league") && m.ms === "result"
+  );
+
+  // Map to the common CricApiMatch format enough for fetchFullMatchData to take over
+  return filtered.map((m) => ({
+    id: m.id,
+    name: `${m.t1} vs ${m.t2}`,
+    matchType: m.matchType,
+    status: m.status,
+    venue: "", // Will be filled by match_info
+    date: m.dateTimeGMT.split("T")[0],
+    dateTimeGMT: m.dateTimeGMT,
+    teams: [m.t1.split(" [")[0], m.t2.split(" [")[0]],
+    teamInfo: [],
+    score: [],
+    series_id: "",
+    matchStarted: true,
+    matchEnded: true,
+  }));
+}
+
+export async function fetchNewIPLMatches(): Promise<Extract<AIResponseMatchPayload, { matchFound: true }>[]> {
+  // 1. Try /currentMatches first
+  let completedIPL = await fetchCurrentMatchesIPL();
+
+  // 2. Fallback to /cricScore if no matches found
+  if (completedIPL.length === 0) {
+    console.log("[CRICAPI] No IPL matches in /currentMatches. Checking /cricScore fallback...");
+    completedIPL = await fetchCricScoreIPL();
+  }
 
   if (completedIPL.length === 0) return [];
 

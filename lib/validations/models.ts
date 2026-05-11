@@ -17,6 +17,7 @@ export const MatchSchema = z.object({
 export const SummarySchema = z.object({
   id: z.string().cuid().optional(),
   matchId: z.string().cuid(),
+  headline: z.string().nullish(),
   content: z.string().min(1, "Content cannot be empty"),
   aiModel: z.string().min(1, "AI Model identifier is required"),
   createdAt: z.date().optional(),
@@ -126,6 +127,7 @@ export type AIResponseMatchPayload = z.infer<typeof AIResponseMatchSchema>;
 /** One summary preview attached to a match card (first summary only). */
 export type SummaryPreview = {
   id: string;
+  headline: string | null;
   content: string; // full roast — truncated in the UI if needed
 };
 
@@ -165,6 +167,7 @@ export type MatchDetail = {
   reactionBreakdown: Record<ReactionType, number>; // Breakdown of each type
   summary: {
     id: string;
+    headline: string | null;
     content: string;
     aiModel: string;
   } | null;

@@ -32,8 +32,8 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // Use a model with Google Search grounding support for data fetch.
 // Roast generation does not need search; use the lighter model to save tokens.
-const FETCH_MODEL = "gemini-2.5-flash";
-const ROAST_MODEL = "gemini-2.5-flash";
+const FETCH_MODEL = "gemini-2.0-flash";
+const ROAST_MODEL = "gemini-2.0-flash";
 
 // ---------------------------------------------------------------------------
 // Retry configuration
@@ -476,7 +476,14 @@ ${styleDef}
 - One paragraph only, max 200 words.
 - No personal attacks on families or injuries.
 
-Now write a fresh roast using the match data below. Invent your own comparisons based strictly on your assigned persona and style.
+=== OUTPUT FORMAT ===
+Return ONLY a valid JSON object. No markdown formatting, no code blocks.
+{
+  "headline": "A punchy, creative, newspaper-style headline (max 10 words)",
+  "roast": "The actual roast paragraph as per your persona and style"
+}
+
+Now write a fresh roast using the match data below.
 `.trim();
 }
 
@@ -535,7 +542,7 @@ Return ONLY the bullet points. Do not include any introductory or conversational
  */
 export async function generateMatchRoast(
   matchData: Extract<AIResponseMatchPayload, { matchFound: true }>
-): Promise<string> {
+): Promise<{ headline: string; roast: string }> {
   const matchYear = new Date(matchData.matchDate).getFullYear();
   
   // Get historical context for both teams up to the match year
@@ -602,10 +609,24 @@ export async function generateMatchRoast(
     },
   });
 
-  const text = response.text;
-  if (!text || text.trim() === "") {
+  const responseText = response.text;
+  if (!responseText || responseText.trim() === "") {
     throw new Error("[GEMINI] Roast model returned an empty response.");
   }
 
-  return text.trim();
+  try {
+    const jsonString = extractJSONString(responseText);
+    const parsed = JSON.parse(jsonString);
+    
+    return {
+      headline: (parsed.headline || "MATCH REPORT").toUpperCase(),
+      roast: parsed.roast || responseText.trim()
+    };
+  } catch (err) {
+    console.warn("[GEMINI] Failed to parse JSON response for roast. Falling back to raw text.", err);
+    return {
+      headline: "THE DAILY SCORCH",
+      roast: responseText.trim()
+    };
+  }
 }

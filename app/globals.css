@@ -3,3 +3,13 @@
 html,body{
     scroll-behavior: smooth;
 }
+
+@theme {
+  --animate-infinite-scroll: infinite-scroll 40s linear infinite;
+  --font-serif: var(--font-serif);
+
+  @keyframes infinite-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+}

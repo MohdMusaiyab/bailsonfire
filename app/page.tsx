@@ -1,14 +1,17 @@
-import Hero from "@/components/general/Hero";
+import NewspaperHero from "@/components/landing/NewspaperHero";
+import { getNewspaperHeroData } from "@/lib/actions/matches";
 import { RecentMatches } from "@/components/general/RecentMatches";
 import { WallOfShame } from "@/components/general/WallOfShame";
 import { WhySection } from "@/components/general/WhySection";
 import { RoadmapSection } from "@/components/general/RoadmapSection";
 import { LandingCTA } from "@/components/general/LandingCTA";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const heroData = await getNewspaperHeroData();
+
   return (
     <main>
-      <Hero />
+      <NewspaperHero data={heroData} />
       <RecentMatches />
       <WallOfShame />
       <WhySection />

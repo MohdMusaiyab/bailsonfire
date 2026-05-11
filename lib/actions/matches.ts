@@ -57,6 +57,7 @@ export async function getRecentMatches(limit = 3): Promise<RecentMatchCard[]> {
         orderBy: { createdAt: 'desc' },
         select: {
           id: true,
+          headline: true,
           content: true,
         },
       },
@@ -153,6 +154,7 @@ export async function getMatchesBySeason({
         orderBy: { createdAt: 'desc' },
         select: {
           id: true,
+          headline: true,
           content: true,
         },
       },
@@ -214,6 +216,7 @@ export async function getWallOfShame(): Promise<RecentMatchCard | null> {
         orderBy: { createdAt: 'desc' },
         select: {
           id: true,
+          headline: true,
           content: true,
         },
       },
@@ -240,5 +243,76 @@ export async function getWallOfShame(): Promise<RecentMatchCard | null> {
     reactionsCount: row._count.reactions,
     commentsCount: row._count.comments,
     summary: row.summaries[0] ?? null,
+  };
+}
+
+/**
+ * Fetches the specific data required for the Newspaper Hero section.
+ * Returns the latest roast (lead story), recent match results (ticker),
+ * and most-reacted matches (trending scandals).
+ */
+export async function getNewspaperHeroData() {
+  const latestMatch = await prisma.match.findFirst({
+    orderBy: { matchDate: 'desc' },
+    select: {
+      id: true,
+      externalId: true,
+      homeTeam: true,
+      awayTeam: true,
+      scoreSummary: true,
+      matchDate: true,
+      venue: true,
+      summaries: {
+        take: 1,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          headline: true,
+          content: true,
+        }
+      }
+    }
+  });
+
+  const breakingNews = await prisma.match.findMany({
+    take: 5,
+    orderBy: { matchDate: 'desc' },
+    select: {
+      winner: true,
+      loser: true,
+      scoreSummary: true,
+      externalId: true,
+    }
+  });
+
+  const trendingScandals = await prisma.match.findMany({
+    take: 3,
+    orderBy: [
+      { reactions: { _count: 'desc' } },
+      { matchDate: 'desc' }
+    ],
+    select: {
+      id: true,
+      externalId: true,
+      homeTeam: true,
+      awayTeam: true,
+      summaries: {
+        take: 1,
+        orderBy: { createdAt: 'desc' },
+        select: { 
+          headline: true,
+          content: true
+        }
+      }
+    }
+  });
+
+  const totalMatches = await prisma.match.count();
+
+  return {
+    latestMatch,
+    breakingNews,
+    trendingScandals,
+    totalMatches
   };
 }
