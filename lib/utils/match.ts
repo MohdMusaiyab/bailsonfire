@@ -17,7 +17,12 @@ const KNOWN_TEAM_SHORTS: Record<string, string> = {
   "Punjab Kings": "PBKS",
   "Rajasthan Royals": "RR",
   "Royal Challengers Bengaluru": "RCB",
+  "Royal Challengers Bengaluru Women": "RCB",
   "Sunrisers Hyderabad": "SRH",
+  "Mumbai Indians Women": "MI",
+  "Delhi Capitals Women": "DC",
+  "UP Warriorz": "UPW",
+  "Gujarat Giants": "GG",
 
   // Legacy/Defunct/Alternate Spellings
   "Delhi Daredevils": "DC", // Folded into Delhi Capitals
@@ -113,11 +118,14 @@ export function shortenTeamNamesInSummary(summary: string): string {
     result = result.replace(regex, short);
   }
 
-  // Also replace some common alternate spellings manually
+  // Also replace some common alternate spellings or incorrect abbreviations manually
   const extraReplacements: Record<string, string> = {
     "Royal Challengers Bangalore": "RCB",
     "Kings XI Punjab": "PBKS",
     "Delhi Daredevils": "DC",
+    "RCBW": "RCB",
+    "MIW": "MI",
+    "DCW": "DC",
   };
 
   for (const [full, short] of Object.entries(extraReplacements)) {

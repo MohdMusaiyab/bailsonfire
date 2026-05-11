@@ -1,11 +1,10 @@
 // components/general/RecentMatches.tsx
-// Pure Server Component — no client JS needed, pure Tailwind styling.
+// Pure Server Component — newspaper broadsheet "Latest Dispatches" section.
 
 import { getRecentMatches } from "@/lib/actions/matches";
-import { MatchCard } from "@/components/match/MatchCard";
+import { NewspaperMatchCard } from "@/components/match/NewspaperMatchCard";
 import Link from "next/link";
-
-
+import { ArrowRight, Newspaper } from "lucide-react";
 
 // ─── RecentMatches (Server Component) ────────────────────────────────────────
 
@@ -14,73 +13,100 @@ export async function RecentMatches() {
 
   return (
     <section
-      className="relative py-24 px-6 md:px-16 bg-[#FCFBF7]"
+      id="recent-matches"
+      className="relative py-20 px-6 bg-[#FBFBF9] overflow-hidden"
       aria-label="Recent IPL matches"
     >
-      {/* Architectural vertical accent lines — mirrors Hero */}
-      <div className="absolute left-[5%] top-0 bottom-0 w-px bg-[#1A1A1A]/4 hidden xl:block" aria-hidden="true" />
-      <div className="absolute right-[5%] top-0 bottom-0 w-px bg-[#1A1A1A]/4 hidden xl:block" aria-hidden="true" />
+      {/* ── GRAIN OVERLAY ─────────────────────────────────────────── */}
+      <div
+        className="absolute inset-0 z-0 pointer-events-none opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/p6-dark.png')]"
+        aria-hidden="true"
+      />
 
-      <div className="mx-auto max-w-6xl">
-
-        {/* ── SECTION HEADER ─────────────────────────────────────── */}
+      <div className="container relative z-10 mx-auto max-w-6xl">
+        {/* ── SECTION HEADER (newspaper style) ─────────────────────── */}
         <header className="mb-14">
-          {/* overline label — same style as Hero's live badge text */}
-          <p className="mb-2 text-[0.68rem] font-black tracking-[0.22em] uppercase text-[#1A1A1A]/30">
-            IPL 2026 · Season Highlights
-          </p>
+          {/* Double rule top */}
+          <div className="w-full h-1 bg-slate-900" />
+          <div className="w-full h-px bg-slate-900 mt-1 mb-6" />
 
-          {/* Section title row: h2 + extending hairline */}
-          <div className="flex items-baseline gap-6">
-            <h2 className="text-4xl md:text-5xl font-black tracking-tighter leading-none text-[#1A1A1A]">
-              Recent Matches
-            </h2>
-            {/* horizontal rule that stretches to fill remaining space */}
-            <div className="flex-1 h-px bg-[#1A1A1A]/5 hidden sm:block" />
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                <span className="px-2 py-0.5 bg-slate-900 text-white text-[0.6rem] font-bold uppercase tracking-tighter shadow-[2px_2px_0px_0px_rgba(225,29,72,0.4)]">
+                  Latest Dispatches
+                </span>
+                <span className="px-2 py-0.5 border border-slate-900 text-slate-900 text-[0.6rem] font-bold uppercase tracking-tighter">
+                  IPL 2026
+                </span>
+              </div>
+              <h2 className="text-4xl md:text-6xl font-serif leading-[1] text-slate-900 tracking-tighter uppercase">
+                Recent Match Results
+              </h2>
+              <p className="mt-3 text-sm font-serif italic text-slate-500 max-w-md">
+                Freshly roasted matches. Read the drama that just happened.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 text-[0.6rem] font-black uppercase tracking-widest text-slate-400">
+              <Newspaper size={14} />
+              <span>Page 2</span>
+            </div>
           </div>
+
+          {/* Bottom rule */}
+          <div className="w-full h-px bg-slate-900/20 mt-6" />
         </header>
 
-        {/* ── MATCH GRID or EMPTY STATE ──────────────────────────── */}
+        {/* ── MATCH COLUMNS or EMPTY STATE ─────────────────────────── */}
         {matches.length === 0 ? (
-          <div className="py-16 text-center">
-            <p className="text-sm font-semibold text-[#1A1A1A]/30 uppercase tracking-widest">
-              No matches yet.{" "}
-              <code className="font-mono normal-case tracking-normal bg-[#1A1A1A]/5 px-2 py-0.5 rounded">
-                npx tsx scripts/ingest.ts
-              </code>
+          <div className="py-16 text-center border-2 border-dashed border-slate-300">
+            <p className="text-lg font-serif italic text-slate-400">
+              &ldquo;The press has nothing to report. Suspicious.&rdquo;
+            </p>
+            <p className="mt-3 text-[0.65rem] font-black uppercase tracking-widest text-slate-400">
+              No matches ingested yet — run the pipeline
             </p>
           </div>
         ) : (
-          <ul
-            className="flex flex-wrap justify-center gap-6 list-none p-0 m-0"
-            role="list"
-          >
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
             {matches.map((match, i) => (
-              <li key={match.id} className="flex w-full sm:w-[calc(50%-1.5rem)] lg:w-[calc(33.333%-1.5rem)]">
-                <MatchCard match={match} index={i} />
-              </li>
+              <NewspaperMatchCard
+                key={match.id}
+                match={match}
+                index={i}
+                isLast={i === matches.length - 1}
+              />
             ))}
-          </ul>
+          </div>
         )}
 
-        {/* ── VIEW ALL CTA ───────────────────────────────────────── */}
-        <div className="mt-16 flex flex-col items-center gap-6">
-          <p className="text-[0.72rem] font-bold text-[#1A1A1A]/30 uppercase tracking-[0.15em]">
-            Hungry for more? Explore the full season roasts.
-          </p>
-          <Link
-            href="/matches/2026"
-            className="group relative inline-flex items-center gap-3 px-10 py-4 bg-[#1A1A1A] text-[#FCFBF7] rounded-full text-[0.75rem] font-black uppercase tracking-[0.2em] transition-all hover:scale-[1.03] active:scale-[0.98] shadow-lg shadow-black/10"
-          >
-            Explore All 2026 Roasts
-            <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
-          </Link>
+        {/* ── VIEW ALL CTA (editorial style) ───────────────────────── */}
+        <div className="mt-16">
+          <div className="w-full h-px bg-slate-900/10 mb-8" />
+
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+            <p className="text-sm font-serif italic text-slate-500 text-center sm:text-left">
+              These are merely the opening acts. The full season of humiliation
+              awaits in the archives.
+            </p>
+
+            <Link
+              href="/matches/2026"
+              className="group shrink-0 px-8 py-4 bg-slate-900 text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-rose-600 transition-all flex items-center gap-3 shadow-[4px_4px_0px_0px_rgba(225,29,72,0.4)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
+            >
+              View All Matches
+              <ArrowRight
+                size={16}
+                className="transition-transform group-hover:translate-x-1"
+              />
+            </Link>
+          </div>
         </div>
 
-        {/* Bottom hairline — same as Hero's bottom fade language */}
-        <div className="mt-24 h-px bg-gradient-to-r from-transparent via-[#1A1A1A]/6 to-transparent" aria-hidden="true" />
+        {/* Bottom double rule */}
+        <div className="mt-16 w-full h-px bg-slate-900/10" />
+        <div className="w-full h-px bg-slate-900/5 mt-1" />
       </div>
     </section>
   );

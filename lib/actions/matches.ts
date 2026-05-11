@@ -300,6 +300,7 @@ export async function getNewspaperHeroData() {
         take: 1,
         orderBy: { createdAt: 'desc' },
         select: { 
+          id: true,
           headline: true,
           content: true
         }

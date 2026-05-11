@@ -25,6 +25,7 @@ export const metadata: Metadata = {
 import { SessionProvider } from "@/components/providers/session-provider";
 import { VerificationWarning } from "@/components/auth/verification-warning";
 import { Navbar } from "@/components/general/Navbar";
+import { Footer } from "@/components/general/Footer";
 
 export default function RootLayout({
   children,
@@ -40,7 +41,10 @@ export default function RootLayout({
         <SessionProvider>
           <Navbar />
           <VerificationWarning />
-          {children}
+          <main className="flex-grow">
+            {children}
+          </main>
+          <Footer />
         </SessionProvider>
       </body>
     </html>

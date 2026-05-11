@@ -1,135 +1,97 @@
 "use client";
 
 // components/general/LandingCTA.tsx
-// Closing CTA section — the final thing a visitor sees on the landing page.
+// Closing CTA — newspaper back-page ad / editorial sign-off (dark background, improved readability)
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { ArrowRight, Flame } from "lucide-react";
 
 export function LandingCTA() {
   return (
     <section
-      className="relative py-24 px-6 md:px-16 bg-[#FCFBF7] overflow-hidden"
+      className="relative py-20 px-6 bg-slate-900 overflow-hidden"
       aria-label="Get started"
     >
-      {/* Subtle top hairline */}
+      {/* Grain overlay */}
       <div
-        className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#1A1A1A]/8 to-transparent"
+        className="absolute inset-0 z-0 pointer-events-none opacity-[0.05] bg-[url('https://www.transparenttextures.com/patterns/p6-dark.png')]"
         aria-hidden="true"
       />
 
-      {/* Large faded background text for personality */}
+      {/* Watermark */}
       <p
-        className="absolute inset-0 flex items-center justify-center text-[clamp(5rem,18vw,14rem)] font-black text-[#1A1A1A]/[0.025] leading-none select-none pointer-events-none tracking-tighter"
+        className="absolute inset-0 flex items-center justify-center text-[clamp(5rem,20vw,16rem)] font-serif text-white/[0.03] leading-none select-none pointer-events-none tracking-tighter uppercase"
         aria-hidden="true"
       >
         BAILS
       </p>
 
-      <div className="mx-auto max-w-3xl relative z-10 text-center">
-        {/* Overline */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="mb-4 text-[0.68rem] font-black tracking-[0.22em] uppercase text-[#1A1A1A]/55"
-        >
-          Join the Carnage
-        </motion.p>
+      <div className="container relative z-10 mx-auto max-w-5xl">
+        {/* Top rules */}
+        <div className="w-full h-1 bg-white/20" />
+        <div className="w-full h-px bg-white/10 mt-1 mb-12" />
 
-        {/* Headline */}
-        <motion.h2
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="text-4xl md:text-6xl font-black tracking-tighter leading-[0.95] text-[#1A1A1A] mb-6"
-        >
-          Your team just lost.
-          <br />
-          <span className="text-[#1A1A1A]/40 font-light italic">
-            We{"'"}ll make it funny.
-          </span>
-        </motion.h2>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
+          {/* Left: Editorial text */}
+          <div className="lg:col-span-8">
+            <motion.h2
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-4xl md:text-6xl font-serif leading-[1.05] text-white tracking-tighter uppercase mb-5"
+            >
+              Your team lost.
+              <br />
+              <span className="text-rose-500">What&apos; s New in this.</span>
+            </motion.h2>
 
-        {/* Sub-copy */}
-        <motion.p
-          initial={{ opacity: 0, y: 8 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.15 }}
-          className="mb-12 text-base text-[#1A1A1A]/45 font-medium leading-relaxed max-w-lg mx-auto"
-        >
-          Sign in to like roasts, drop your own takes in the comments, and
-          contribute to the most unhinged cricket commentary on the internet.
-        </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 8 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="text-base md:text-lg font-serif text-white/60 leading-relaxed max-w-xl mb-8"
+            >
+              Sign in to react, drop your hot takes in the comments, and join
+              the most honest cricket commentary on the internet. No ads. No
+              subscription. Just roasts.
+            </motion.p>
 
-        {/* CTAs */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.25 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4"
-        >
-          <Link
-            href="/auth/sign-in"
-            className="
-              group relative px-8 py-4 font-bold rounded-lg overflow-hidden
-              transition-all hover:scale-[1.02] active:scale-[0.98]
-              shadow-2xl shadow-[#1A1A1A]/20
-              bg-[#1A1A1A] text-[#FCFBF7]
-              before:absolute before:inset-0
-              before:bg-gradient-to-r before:from-[#1A1A1A] before:to-gray-700
-              before:translate-x-[-100%] before:transition-transform
-              before:duration-500 before:ease-in-out
-              hover:before:translate-x-0
-            "
-          >
-            <span className="relative z-10 flex items-center gap-2">
-              Sign In & Roast Along
-              <svg
-                className="w-4 h-4 transition-transform group-hover:translate-x-1"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="flex flex-col sm:flex-row gap-4"
+            >
+              <Link
+                href="/auth/sign-in"
+                className="group inline-flex items-center justify-center gap-3 px-8 py-4 bg-rose-600 text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-rose-500 transition-all shadow-[4px_4px_0px_0px_rgba(255,255,255,0.15)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2.5}
-                  d="M14 5l7 7m0 0l-7 7m7-7H3"
+                Sign In &amp; Roast
+                <ArrowRight
+                  size={16}
+                  className="transition-transform group-hover:translate-x-1"
                 />
-              </svg>
-            </span>
-          </Link>
+              </Link>
+              <Link
+                href="/matches/2026"
+                className="group inline-flex items-center justify-center gap-3 px-8 py-4 border-2 border-white/30 text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-white hover:text-slate-900 transition-all"
+              >
+                Browse All Roasts
+                <Flame
+                  size={14}
+                  className="text-rose-500 group-hover:text-rose-600"
+                />
+              </Link>
+            </motion.div>
+          </div>
 
-          <Link
-            href="/matches/2026"
-            className="px-8 py-4 bg-white/50 backdrop-blur-sm border border-[#1A1A1A]/20 text-[#1A1A1A] font-bold rounded-lg transition-all hover:bg-white/80 hover:shadow-lg"
-          >
-            Browse All Roasts
-          </Link>
-        </motion.div>
-
-        {/* Tiny disclaimer */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="mt-8 text-[0.65rem] font-semibold text-[#1A1A1A]/45 uppercase tracking-widest"
-        >
-          No subscription · No ads · Just roasts
-        </motion.p>
+        {/* Right: Classifieds box (improved contrast) */}
+        </div>
       </div>
-
-      {/* Footer label */}
-      <p className="absolute bottom-6 left-0 right-0 text-center text-[0.6rem] font-black tracking-[0.25em] uppercase text-[#1A1A1A]/40 select-none">
-        Bails on Fire &copy; {new Date().getFullYear()}
-      </p>
     </section>
   );
 }

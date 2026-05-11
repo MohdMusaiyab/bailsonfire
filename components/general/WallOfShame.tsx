@@ -1,10 +1,12 @@
 // components/general/WallOfShame.tsx
-// Server Component — fetches the most-liked match for a dramatic spotlight.
+// Server Component — newspaper-style "Wall of Shame" spotlight for the most-reacted roast.
 
 import Link from "next/link";
 import { getWallOfShame } from "@/lib/actions/matches";
+import { normalizeTeamName, getTeamShortName, shortenTeamNamesInSummary } from "@/lib/utils/match";
+import { Flame, MessageCircle, ArrowRight, AlertTriangle } from "lucide-react";
 
-// ─── Team accent colours (same map as MatchCard) ────────────────────────────
+// ─── Team accent colours ────────────────────────────────────────────────────
 const TEAM_COLORS: Record<string, string> = {
   "Mumbai Indians": "#004BA0",
   "Chennai Super Kings": "#C8A800",
@@ -17,205 +19,223 @@ const TEAM_COLORS: Record<string, string> = {
   "Lucknow Super Giants": "#3B82F6",
   "Gujarat Titans": "#1C1C1C",
 };
-const teamColor = (name: string) => TEAM_COLORS[name] ?? "#6B7280";
+const teamColor = (name: string) => TEAM_COLORS[normalizeTeamName(name)] ?? "#6B7280";
 
 export async function WallOfShame() {
   const match = await getWallOfShame();
 
+  const dateLabel = match
+    ? match.matchDate.toLocaleDateString("en-IN", {
+        timeZone: "Asia/Kolkata",
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : "";
+
+  const loserShort = match?.loser ? getTeamShortName(match.loser) : null;
+  const cleanScore = match ? shortenTeamNamesInSummary(match.scoreSummary) : "";
+  const headline = match?.summary?.headline || "A PERFORMANCE BEST LEFT FORGOTTEN";
+  const roastExcerpt = match?.summary?.content
+    ? match.summary.content.length > 300
+      ? match.summary.content.slice(0, 297).trimEnd() + "\u2026"
+      : match.summary.content
+    : null;
+
   return (
     <section
       id="wall-of-shame"
-      className="relative py-24 px-6 md:px-16 bg-[#FCFBF7] overflow-hidden"
-      aria-label="Wall of Shame – most liked roast"
+      className="relative py-20 px-6 bg-[#FBFBF9] overflow-hidden"
+      aria-label="Wall of Shame – most reacted roast"
     >
-      {/* Architectural accent lines */}
+      {/* ── GRAIN OVERLAY ─────────────────────────────────────────── */}
       <div
-        className="absolute left-[5%] top-0 bottom-0 w-px bg-[#1A1A1A]/4 hidden xl:block"
-        aria-hidden="true"
-      />
-      <div
-        className="absolute right-[5%] top-0 bottom-0 w-px bg-[#1A1A1A]/4 hidden xl:block"
+        className="absolute inset-0 z-0 pointer-events-none opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/p6-dark.png')]"
         aria-hidden="true"
       />
 
-      {/* Subtle top hairline */}
-      <div
-        className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#1A1A1A]/8 to-transparent"
-        aria-hidden="true"
-      />
-
-      <div className="mx-auto max-w-6xl">
-        {/* ── SECTION HEADER ──────────────────────────────────────── */}
+      <div className="container relative z-10 mx-auto max-w-6xl">
+        {/* ── SECTION HEADER ─────────────────────────────────────── */}
         <header className="mb-14">
-          <p className="mb-2 text-[0.68rem] font-black tracking-[0.22em] uppercase text-[#1A1A1A]/55">
-            Community Verdict
-          </p>
-          <div className="flex items-baseline gap-6">
-            <h2 className="text-4xl md:text-5xl font-black tracking-tighter leading-none text-[#1A1A1A]">
-              Wall of Shame
-            </h2>
-            <div className="flex-1 h-px bg-[#1A1A1A]/5 hidden sm:block" />
+          <div className="w-full h-1 bg-slate-900" />
+          <div className="w-full h-px bg-slate-900 mt-1 mb-6" />
+
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                <span className="px-2 py-0.5 bg-rose-600 text-white text-[0.6rem] font-bold uppercase tracking-tighter shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                  Hall of Shame
+                </span>
+                <span className="px-2 py-0.5 border border-slate-900 text-slate-900 text-[0.6rem] font-bold uppercase tracking-tighter">
+                  Fan Favorite
+                </span>
+              </div>
+              <h2 className="text-4xl md:text-6xl font-serif leading-[1] text-slate-900 tracking-tighter uppercase">
+                Wall of Shame
+              </h2>
+              <p className="mt-3 text-sm font-serif italic text-slate-500 max-w-md">
+                The one roast everyone agreed on. Picked by the mob.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 text-[0.6rem] font-black uppercase tracking-widest text-slate-400">
+              <AlertTriangle size={14} />
+              <span>Public Notice</span>
+            </div>
           </div>
-          <p className="mt-3 text-sm text-[#1A1A1A]/40 font-medium max-w-md">
-            The roast the internet can{"'"}t stop liking. Chosen by you.
-          </p>
+
+          <div className="w-full h-px bg-slate-900/20 mt-6" />
         </header>
 
         {/* ── CONTENT ─────────────────────────────────────────────── */}
         {match === null ? (
           /* ── EMPTY STATE ──────────────────────────────────────── */
-          <div className="relative flex flex-col items-center justify-center py-20 rounded-3xl border border-dashed border-[#1A1A1A]/10 bg-white/40 text-center gap-5">
-            <span
-              className="text-5xl select-none opacity-30"
-              aria-hidden="true"
-            >
+          <div className="border-2 border-dashed border-slate-300 py-16 text-center">
+            <p className="text-4xl mb-4 select-none opacity-30" aria-hidden="true">
               🏆
-            </span>
-            <div>
-              <p className="text-[0.75rem] font-black tracking-[0.2em] uppercase text-[#1A1A1A]/50 mb-1">
-                Nothing here yet
-              </p>
-              <p className="text-sm font-medium text-[#1A1A1A]/35 max-w-xs mx-auto leading-relaxed">
-                The Wall of Shame will be filled once a roast gets its first
-                reaction. Be the first to crown a disaster.
-              </p>
-            </div>
+            </p>
+            <p className="text-lg font-serif italic text-slate-400 mb-2">
+              &ldquo;No one has reacted yet. The silence is louder than the
+              batting collapse.&rdquo;
+            </p>
+            <p className="text-[0.65rem] font-black uppercase tracking-widest text-slate-400 mb-6">
+              React on a roast to crown the first disaster
+            </p>
             <Link
               href="/matches/2026"
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-[#1A1A1A]/12 text-[0.72rem] font-black uppercase tracking-[0.18em] text-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-[#FCFBF7] transition-all"
+              className="group inline-flex items-center gap-2 px-6 py-3 bg-slate-900 text-white text-[0.65rem] font-black uppercase tracking-[0.15em] hover:bg-rose-600 transition-all shadow-[3px_3px_0px_0px_rgba(225,29,72,0.4)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
             >
-              Browse roasts
-              <svg
-                className="w-3.5 h-3.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2.5}
-                  d="M17 8l4 4m0 0l-4 4m4-4H3"
-                />
-              </svg>
+              Browse Roasts
+              <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
             </Link>
           </div>
         ) : (
-          /* ── SPOTLIGHT CARD ───────────────────────────────────── */
-          <div className="relative group">
-            <div
-              className="absolute -inset-px rounded-3xl bg-gradient-to-br from-[#1A1A1A]/8 via-transparent to-[#1A1A1A]/4 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
-              aria-hidden="true"
-            />
+          /* ── SPOTLIGHT — Newspaper Feature Article ───────────── */
+          <article className="group border-2 border-slate-900 bg-white relative overflow-hidden">
+            {/* Top loser-team color accent bar */}
+            {match.loser && (
+              <div
+                className="h-1.5 w-full"
+                style={{ background: teamColor(match.loser) }}
+                aria-hidden="true"
+              />
+            )}
 
-            <article className="relative grid md:grid-cols-[1fr_auto] gap-0 bg-white border border-[#1A1A1A]/[0.07] rounded-3xl shadow-sm overflow-hidden transition-all duration-300 group-hover:shadow-lg">
-              {/* Left accent bar — loser team colour */}
-              {match.loser && (
-                <div
-                  className="absolute left-0 top-0 bottom-0 w-1 md:w-1.5 rounded-l-3xl"
-                  style={{ background: teamColor(match.loser) }}
-                  aria-hidden="true"
-                />
-              )}
-
-              {/* ── MAIN CONTENT ─────────────────────────────────── */}
-              <div className="p-8 md:p-10 flex flex-col items-center md:items-start text-center md:text-left">
-                {/* Crown badge */}
-                <div className="inline-flex items-center gap-2 px-3 py-1 mb-6 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-[0.65rem] font-black tracking-widest uppercase">
-                  <span aria-hidden="true">🏆</span>
-                  Most Reacted Roast
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
+              {/* ── LEFT: Main Content (8 cols) ────────────────── */}
+              <div className="lg:col-span-8 p-8 md:p-10 lg:border-r-2 border-slate-900/15">
+                {/* Badges row */}
+                <div className="flex items-center gap-3 mb-5 flex-wrap">
+                  <span className="px-2 py-0.5 bg-amber-500 text-white text-[0.55rem] font-bold uppercase tracking-tighter shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)]">
+                    🏆 Most Roasted
+                  </span>
+                  {loserShort && (
+                    <span className="px-2 py-0.5 border border-rose-600 text-rose-600 text-[0.55rem] font-bold uppercase tracking-tighter">
+                      {loserShort} caught slacking
+                    </span>
+                  )}
                 </div>
 
-                {/* Teams */}
-                <div className="flex items-center justify-center md:justify-start gap-3 mb-3 flex-wrap">
-                  <span className="flex items-center gap-2 text-base font-black text-[#1A1A1A]">
+                {/* Matchup */}
+                <div className="flex items-center gap-3 mb-3 flex-wrap">
+                  <span className="flex items-center gap-1.5">
                     <span
-                      className="w-2 h-2 rounded-full shrink-0"
+                      className="w-2.5 h-2.5 rounded-full shrink-0"
                       style={{ background: teamColor(match.homeTeam) }}
                       aria-hidden="true"
                     />
-                    {match.homeTeam}
+                    <span className="text-sm font-black uppercase tracking-wide text-slate-900">
+                      {normalizeTeamName(match.homeTeam)}
+                    </span>
                   </span>
-                  <span className="text-[0.6rem] font-black tracking-[0.2em] uppercase text-[#1A1A1A]/25">
+                  <span className="text-[0.6rem] font-black text-slate-900 uppercase tracking-[0.2em]">
                     vs
                   </span>
-                  <span className="flex items-center gap-2 text-base font-black text-[#1A1A1A]">
+                  <span className="flex items-center gap-1.5">
                     <span
-                      className="w-2 h-2 rounded-full shrink-0"
+                      className="w-2.5 h-2.5 rounded-full shrink-0"
                       style={{ background: teamColor(match.awayTeam) }}
                       aria-hidden="true"
                     />
-                    {match.awayTeam}
+                    <span className="text-sm font-black uppercase tracking-wide text-slate-900">
+                      {normalizeTeamName(match.awayTeam)}
+                    </span>
                   </span>
                 </div>
 
-                {/* Score */}
-                <p className="text-[1.1rem] font-black tracking-tight text-[#1A1A1A] mb-1">
-                  {match.scoreSummary}
+                {/* Score + meta */}
+                <p className="text-[0.8rem] font-black tracking-tight text-slate-600 uppercase mb-1">
+                  {cleanScore}
+                </p>
+                <p className="text-[0.65rem] font-semibold text-slate-400 mb-6">
+                  {match.venue} &middot; {dateLabel}
                 </p>
 
-                {/* Venue + date */}
-                <p className="text-[0.68rem] font-semibold text-[#1A1A1A]/35 mb-6">
-                  {match.venue} &middot;{" "}
-                  {match.matchDate.toLocaleDateString("en-IN", {
-                    timeZone: "Asia/Kolkata",
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  })}
-                </p>
+                {/* Headline */}
+                <h3 className="text-3xl md:text-5xl font-serif leading-[1.1] text-slate-900 mb-6 uppercase group-hover:text-rose-700 transition-colors">
+                  {headline}
+                </h3>
 
-                {/* Roast excerpt */}
-                {match.summary && (
-                  <blockquote className="relative px-4 md:pl-4 md:pr-0 border-x-0 md:border-x-0 md:border-l-2 border-[#1A1A1A]/10 mb-8 max-w-2xl">
-                    <p className="text-[0.88rem] leading-relaxed text-[#1A1A1A]/60 italic">
-                      {match.summary.content.length > 240
-                        ? match.summary.content.slice(0, 237).trimEnd() +
-                          "\u2026"
-                        : match.summary.content}
+                {/* Roast excerpt — drop cap */}
+                {roastExcerpt && (
+                  <blockquote className="border-l-2 border-slate-900/15 pl-5 mb-8 max-w-2xl">
+                    <p className="text-base md:text-lg font-serif text-slate-600 leading-relaxed italic first-letter:text-5xl first-letter:font-serif first-letter:mr-2 first-letter:float-left first-letter:text-slate-900 first-letter:leading-[0.8] first-letter:pt-1">
+                      {roastExcerpt}
                     </p>
                   </blockquote>
                 )}
 
-                {/* Footer row */}
-                <div className="flex items-center justify-center md:justify-start gap-4 flex-wrap">
-                  <span className="inline-flex items-center gap-1.5 text-[0.72rem] font-semibold text-[#1A1A1A]/40">
-                    🔥 {match.reactionsCount.toLocaleString()} reactions
+                {/* Stats row */}
+                <div className="flex items-center gap-5 flex-wrap pt-5 border-t-2 border-slate-900/10">
+                  <span className="inline-flex items-center gap-1.5 text-[0.7rem] font-bold text-slate-400">
+                    <Flame size={14} className="text-rose-500" />
+                    {match.reactionsCount.toLocaleString()} reactions
                   </span>
-                  <span className="inline-flex items-center gap-1.5 text-[0.72rem] font-semibold text-[#1A1A1A]/40">
-                    💬 {match.commentsCount.toLocaleString()} comments
+                  <span className="inline-flex items-center gap-1.5 text-[0.7rem] font-bold text-slate-400">
+                    <MessageCircle size={14} />
+                    {match.commentsCount.toLocaleString()} comments
                   </span>
                   {match.winner && (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-[0.65rem] font-black tracking-wide uppercase">
-                      🏆 {match.winner}
+                    <span className="inline-flex items-center gap-1.5 text-[0.7rem] font-black text-emerald-700 uppercase tracking-wider">
+                      🏆 {getTeamShortName(match.winner)} won
                     </span>
                   )}
                 </div>
               </div>
 
-              {/* ── RIGHT CTA PANEL ──────────────────────────────── */}
-              <div className="flex items-center justify-center p-8 bg-[#1A1A1A]/[0.025] border-t md:border-t-0 md:border-l border-[#1A1A1A]/[0.05]">
-                <Link
-                  href={`/match/${match.externalId}`}
-                  className="group/btn flex flex-col items-center gap-3 px-8 py-6 rounded-2xl border border-[#1A1A1A]/10 bg-white hover:bg-[#1A1A1A] hover:border-transparent transition-all duration-300 hover:shadow-xl hover:shadow-black/10"
-                >
-                  <span className="text-3xl transition-transform duration-300 group-hover/btn:scale-110 select-none">
-                    🔥
-                  </span>
-                  <span className="text-[0.68rem] font-black tracking-[0.18em] uppercase text-[#1A1A1A] group-hover/btn:text-[#FCFBF7] transition-colors">
-                    Read the Burn
-                  </span>
-                </Link>
+              {/* ── RIGHT: CTA Panel (4 cols) ──────────────────── */}
+              <div className="lg:col-span-4 flex flex-col items-center justify-center p-8 md:p-10 bg-slate-900 text-white">
+                <div className="text-center">
+                  <p className="text-6xl mb-4 select-none">🔥</p>
+                  <p className="text-[0.6rem] font-black uppercase tracking-[0.2em] text-slate-400 mb-2">
+                    The people have spoken
+                  </p>
+                  <p className="text-3xl md:text-4xl font-serif mb-1">
+                    {match.reactionsCount.toLocaleString()}
+                  </p>
+                  <p className="text-[0.55rem] font-black uppercase tracking-widest text-slate-500 mb-8">
+                    Total Reactions
+                  </p>
+
+                  <Link
+                    href={`/match/${match.externalId}`}
+                    className="group/btn inline-flex items-center gap-3 px-8 py-4 bg-rose-600 text-white font-black text-xs uppercase tracking-[0.15em] hover:bg-rose-500 transition-all shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
+                  >
+                    Read the Roast
+                    <ArrowRight
+                      size={16}
+                      className="transition-transform group-hover/btn:translate-x-1"
+                    />
+                  </Link>
+                </div>
               </div>
-            </article>
-          </div>
+            </div>
+          </article>
         )}
 
-        <div
-          className="mt-24 h-px bg-gradient-to-r from-transparent via-[#1A1A1A]/6 to-transparent"
-          aria-hidden="true"
-        />
+        {/* Bottom rules */}
+        <div className="mt-16 w-full h-px bg-slate-900/10" />
+        <div className="w-full h-px bg-slate-900/5 mt-1" />
       </div>
     </section>
   );
