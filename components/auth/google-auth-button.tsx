@@ -14,7 +14,7 @@ export function GoogleAuthButton({ actionText = "Sign in" }: { actionText?: stri
         signIn("google", { callbackUrl: "/" });
       }}
       disabled={isLoading}
-      className="w-full flex justify-center items-center gap-3 py-2.5 px-4 bg-white border border-gray-200 shadow-sm rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors disabled:bg-gray-100 disabled:text-gray-400"
+      className="group w-full flex justify-center items-center gap-3 py-3 px-4 bg-[#F9F6EF] border-2 border-[#2C2B28] shadow-[4px_4px_0_0_rgba(0,0,0,0.2)] text-[#2C2B28] font-mono font-bold text-sm uppercase tracking-wider transition-all hover:bg-[#2C2B28] hover:text-[#F9F6EF] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-60 disabled:cursor-not-allowed"
     >
       <svg className="w-5 h-5" viewBox="0 0 24 24">
         <title>Google Logo</title>

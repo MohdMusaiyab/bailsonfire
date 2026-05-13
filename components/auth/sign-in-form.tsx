@@ -53,27 +53,20 @@ export function SignInForm() {
   };
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#FCFBF7] px-4 py-12">
-      {/* Subtle floating background orbs (matching Hero & SignUp theme) */}
-      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <motion.div
-          className="absolute rounded-full bg-[#1A1A1A]/5 blur-3xl"
-          style={{ width: "400px", height: "400px", left: "-10%", top: "20%" }}
-          animate={{ x: [0, 30, 0], y: [0, -20, 0], opacity: [0.3, 0.6, 0.3] }}
-          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute rounded-full bg-[#1A1A1A]/5 blur-3xl"
-          style={{ width: "500px", height: "500px", right: "-15%", bottom: "10%" }}
-          animate={{ x: [0, -40, 0], y: [0, 30, 0], opacity: [0.2, 0.5, 0.2] }}
-          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute rounded-full bg-emerald-500/5 blur-3xl"
-          style={{ width: "300px", height: "300px", left: "20%", bottom: "30%" }}
-          animate={{ x: [0, 20, 0], y: [0, -15, 0], opacity: [0.2, 0.4, 0.2] }}
-          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-        />
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#F9F6EF] px-4 py-12">
+      {/* Paper texture overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-20 bg-[url('https://www.transparenttextures.com/patterns/old-paper.png')] mix-blend-multiply"
+        aria-hidden="true"
+      />
+
+      {/* Vintage newspaper background lines */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-10"
+        aria-hidden="true"
+      >
+        <div className="h-full w-px bg-[#2C2B28] absolute left-5 md:left-20" />
+        <div className="h-full w-px bg-[#2C2B28] absolute right-5 md:right-20" />
       </div>
 
       {/* Form Card */}
@@ -83,60 +76,56 @@ export function SignInForm() {
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="relative z-10 w-full max-w-md"
       >
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-[#1A1A1A]/10 p-8 space-y-6">
+        <div className="bg-[#F9F6EF] border-2 border-[#2C2B28] p-8 md:p-10 shadow-[8px_8px_0_0_rgba(0,0,0,0.2)] space-y-8 relative">
+          {/* Vintage top double border */}
+          <div className="absolute top-0 left-0 w-full h-1 bg-[#2C2B28]" />
+          <div className="absolute top-2 left-0 w-full h-px bg-[#2C2B28]" />
+
           {/* Header */}
-          <div className="space-y-2 text-center">
-            <h2 className="text-3xl font-black tracking-tight text-[#1A1A1A]">
-              Welcome{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#1A1A1A] to-[#1A1A1A]/50">
-                Back
-              </span>
+          <div className="space-y-3 text-center pt-2">
+            <h2 className="text-4xl md:text-5xl font-black tracking-tight text-[#2C2B28] uppercase leading-[1.1]">
+              Welcome Back
             </h2>
-            <p className="text-[#4A4A4A] text-sm font-medium">
-              Sign in to BailsOnFire to continue the roast.
-            </p>
           </div>
 
           {/* Google Auth */}
           <GoogleAuthButton actionText="Sign in" />
 
           {/* Divider */}
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[#1A1A1A]/10"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-3 bg-white/80 backdrop-blur-sm text-[#4A4A4A] font-medium">
-                Or continue with email
-              </span>
-            </div>
+          <div className="relative flex items-center justify-center py-2">
+            <div className="absolute w-full border-t border-[#2C2B28]/20 border-dashed" />
+            <span className="relative px-4 bg-[#F9F6EF] text-[#3A3126] text-[0.65rem] font-mono uppercase tracking-[0.2em] font-bold">
+              Or continue with email
+            </span>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div>
-              <label className="block text-sm font-semibold text-[#1A1A1A] mb-1">
+              <label className="block text-[0.7rem] font-mono font-bold uppercase tracking-wider text-[#2C2B28] mb-2">
                 Email Address
               </label>
               <input
                 {...register("email")}
                 type="email"
-                className="w-full px-4 py-2.5 bg-white border border-[#1A1A1A]/20 rounded-lg focus:ring-2 focus:ring-[#1A1A1A]/30 focus:border-[#1A1A1A] outline-none transition-all text-[#1A1A1A] placeholder:text-[#1A1A1A]/40"
-                placeholder="you@example.com"
+                className="w-full px-4 py-3 bg-[#F9F6EF] border-2 border-[#2C2B28] focus:outline-none focus:ring-0 focus:bg-white transition-colors text-[#2C2B28] font-serif placeholder:font-serif placeholder:italic placeholder:text-[#6B5E4A]/50"
+                placeholder="reader@broadsheet.com"
               />
               {errors.email && (
-                <p className="text-red-500 text-xs mt-1 font-medium">{errors.email.message}</p>
+                <p className="text-[#9B2C2C] text-xs mt-2 font-mono font-bold uppercase tracking-wider">
+                  {errors.email.message}
+                </p>
               )}
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-sm font-semibold text-[#1A1A1A]">
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-[0.7rem] font-mono font-bold uppercase tracking-wider text-[#2C2B28]">
                   Password
                 </label>
                 <Link
                   href="/auth/forgot-password"
-                  className="text-xs text-[#1A1A1A]/60 font-medium hover:text-[#1A1A1A] transition-colors"
+                  className="text-[0.65rem] font-mono font-bold uppercase tracking-wider text-[#6B5E4A] hover:text-[#9B2C2C] hover:underline decoration-2 underline-offset-4 transition-colors"
                 >
                   Forgot password?
                 </Link>
@@ -144,17 +133,19 @@ export function SignInForm() {
               <input
                 {...register("password")}
                 type="password"
-                className="w-full px-4 py-2.5 bg-white border border-[#1A1A1A]/20 rounded-lg focus:ring-2 focus:ring-[#1A1A1A]/30 focus:border-[#1A1A1A] outline-none transition-all text-[#1A1A1A] placeholder:text-[#1A1A1A]/40"
+                className="w-full px-4 py-3 bg-[#F9F6EF] border-2 border-[#2C2B28] focus:outline-none focus:ring-0 focus:bg-white transition-colors text-[#2C2B28] font-serif placeholder:font-serif placeholder:italic placeholder:text-[#6B5E4A]/50"
                 placeholder="••••••••"
               />
               {errors.password && (
-                <p className="text-red-500 text-xs mt-1 font-medium">{errors.password.message}</p>
+                <p className="text-[#9B2C2C] text-xs mt-2 font-mono font-bold uppercase tracking-wider">
+                  {errors.password.message}
+                </p>
               )}
             </div>
 
             {/* Error Message */}
             {error && (
-              <div className="p-3 text-sm text-red-600 bg-red-50/80 backdrop-blur-sm rounded-lg border border-red-200">
+              <div className="p-3 text-[0.75rem] font-mono uppercase font-bold tracking-wide text-[#F9F6EF] bg-[#9B2C2C] border-2 border-[#2C2B28]">
                 {error}
               </div>
             )}
@@ -163,57 +154,39 @@ export function SignInForm() {
             <motion.button
               type="submit"
               disabled={isSubmitting}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="w-full py-3 px-4 text-white font-bold rounded-lg bg-[#1A1A1A] hover:bg-[#2A2A2A] disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#1A1A1A]/20"
+              className="group relative w-full py-4 px-6 bg-[#2C2B28] text-[#F9F6EF] font-mono font-bold text-sm uppercase tracking-[0.2em] transition-all disabled:opacity-60 disabled:cursor-not-allowed hover:bg-[#5A3A2A] shadow-[4px_4px_0_0_rgba(0,0,0,0.2)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
             >
               {isSubmitting ? "Signing in..." : "Sign In"}
             </motion.button>
           </form>
 
           {/* Footer Links - Back to Home + Explore */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2 border-t border-[#1A1A1A]/5">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6 border-t border-[#2C2B28]/20">
             <Link
               href="/"
-              className="inline-flex items-center gap-1.5 text-[#1A1A1A]/60 hover:text-[#1A1A1A] transition-colors group text-sm font-medium"
+              className="text-[0.65rem] font-mono font-bold uppercase tracking-wider text-[#6B5E4A] hover:text-[#2C2B28] transition-colors hover:underline decoration-2 underline-offset-4"
             >
-              <svg
-                className="w-4 h-4 transform group-hover:-translate-x-0.5 transition-transform"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Back to Home
+              ← Back to Home
             </Link>
 
-            <span className="text-[#1A1A1A]/20 text-sm hidden sm:inline">•</span>
+            <span className="text-[#2C2B28]/20 text-sm hidden sm:inline">
+              •
+            </span>
 
             <Link
               href="/matches/2026"
-              className="inline-flex items-center gap-1.5 text-[#1A1A1A]/60 hover:text-[#1A1A1A] transition-colors group text-sm font-medium"
+              className="text-[0.65rem] font-mono font-bold uppercase tracking-wider text-[#6B5E4A] hover:text-[#2C2B28] transition-colors hover:underline decoration-2 underline-offset-4"
             >
-              Explore All Matches
-              <svg
-                className="w-4 h-4 transform group-hover:translate-x-0.5 transition-transform"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
+              Explore All Matches →
             </Link>
           </div>
 
           {/* Sign Up Redirect */}
-          <div className="text-sm text-center text-[#4A4A4A]">
-            Don{"\u2019"}t have an account?{" "}
+          <div className="text-[0.7rem] font-mono font-bold uppercase tracking-wider text-center text-[#6B5E4A]">
+            Don&apos;t have an account?{" "}
             <Link
               href="/auth/sign-up"
-              className="text-[#1A1A1A] font-bold hover:underline"
+              className="text-[#9B2C2C] hover:text-[#2C2B28] hover:underline decoration-2 underline-offset-4 transition-colors"
             >
               Sign up
             </Link>

@@ -151,37 +151,20 @@ export function ForgotPasswordForm() {
   }, [resendCooldown]);
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#FCFBF7] px-4 py-12">
-      {/* Subtle floating background orbs (consistent theme) */}
-      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <motion.div
-          className="absolute rounded-full bg-[#1A1A1A]/5 blur-3xl"
-          style={{ width: "400px", height: "400px", left: "-10%", top: "20%" }}
-          animate={{ x: [0, 30, 0], y: [0, -20, 0], opacity: [0.3, 0.6, 0.3] }}
-          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute rounded-full bg-[#1A1A1A]/5 blur-3xl"
-          style={{
-            width: "500px",
-            height: "500px",
-            right: "-15%",
-            bottom: "10%",
-          }}
-          animate={{ x: [0, -40, 0], y: [0, 30, 0], opacity: [0.2, 0.5, 0.2] }}
-          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute rounded-full bg-emerald-500/5 blur-3xl"
-          style={{
-            width: "300px",
-            height: "300px",
-            left: "20%",
-            bottom: "30%",
-          }}
-          animate={{ x: [0, 20, 0], y: [0, -15, 0], opacity: [0.2, 0.4, 0.2] }}
-          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-        />
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#F9F6EF] px-4 py-12">
+      {/* Paper texture overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-20 bg-[url('https://www.transparenttextures.com/patterns/old-paper.png')] mix-blend-multiply"
+        aria-hidden="true"
+      />
+
+      {/* Vintage newspaper background lines */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-10"
+        aria-hidden="true"
+      >
+        <div className="h-full w-px bg-[#2C2B28] absolute left-5 md:left-20" />
+        <div className="h-full w-px bg-[#2C2B28] absolute right-5 md:right-20" />
       </div>
 
       {/* Form Card */}
@@ -191,26 +174,30 @@ export function ForgotPasswordForm() {
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="relative z-10 w-full max-w-md"
       >
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-[#1A1A1A]/10 p-8 space-y-6">
+        <div className="bg-[#F9F6EF] border-2 border-[#2C2B28] p-8 md:p-10 shadow-[8px_8px_0_0_rgba(0,0,0,0.2)] space-y-8 relative">
+          {/* Vintage top double border */}
+          <div className="absolute top-0 left-0 w-full h-1 bg-[#2C2B28]" />
+          <div className="absolute top-2 left-0 w-full h-px bg-[#2C2B28]" />
+
           {/* Header */}
-          <div className="space-y-2 text-center">
-            <h2 className="text-3xl font-black tracking-tight text-[#1A1A1A]">
+          <div className="space-y-3 text-center pt-2">
+            <h2 className="text-3xl md:text-4xl font-black tracking-tight text-[#2C2B28] uppercase leading-[1.1]">
               {step === "EMAIL" && "Forgot Password"}
               {step === "OTP" && "Verify Identity"}
               {step === "RESET" && "Set New Password"}
             </h2>
-            <p className="text-[#4A4A4A] text-sm font-medium">
+            <p className="text-[#3A3126] text-sm font-medium border-b border-[#2C2B28]/20 pb-4 inline-block">
               {step === "EMAIL" && "Enter your email to receive a reset code."}
               {step === "OTP" && (
                 <>
-                  We{"\u2019"}ve sent a code to{" "}
-                  <span className="font-bold text-[#1A1A1A]">{email}</span>.{" "}
+                  We&apos;ve sent a code to{" "}
+                  <span className="font-bold text-[#2C2B28]">{email}</span>.{" "}
                   <button
                     onClick={() => {
                       setStep("EMAIL");
                       setOtp("");
                     }}
-                    className="text-[#1A1A1A] font-bold hover:underline ml-1"
+                    className="text-[#9B2C2C] font-bold hover:text-[#2C2B28] hover:underline transition-colors ml-1"
                   >
                     Edit
                   </button>
@@ -222,9 +209,9 @@ export function ForgotPasswordForm() {
 
           {/* Step 1: Email Input */}
           {step === "EMAIL" && (
-            <form onSubmit={onRequestOTP} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-sm font-semibold text-[#1A1A1A] ml-1">
+            <form onSubmit={onRequestOTP} className="space-y-5">
+              <div>
+                <label className="block text-[0.7rem] font-mono font-bold uppercase tracking-wider text-[#2C2B28] mb-2">
                   Email Address
                 </label>
                 <input
@@ -233,20 +220,18 @@ export function ForgotPasswordForm() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
                   required
-                  className="w-full px-4 py-2.5 bg-white border border-[#1A1A1A]/20 rounded-lg focus:ring-2 focus:ring-[#1A1A1A]/30 focus:border-[#1A1A1A] outline-none transition-all text-[#1A1A1A] placeholder:text-[#1A1A1A]/40"
+                  className="w-full px-4 py-3 bg-[#F9F6EF] border-2 border-[#2C2B28] focus:outline-none focus:ring-0 focus:bg-white transition-colors text-[#2C2B28] font-serif placeholder:font-serif placeholder:italic placeholder:text-[#6B5E4A]/50"
                 />
               </div>
               {error && (
-                <div className="p-3 text-sm text-red-600 bg-red-50/80 backdrop-blur-sm rounded-lg border border-red-200">
+                <div className="p-3 text-[0.75rem] font-mono uppercase font-bold tracking-wide text-[#F9F6EF] bg-[#9B2C2C] border-2 border-[#2C2B28]">
                   {error}
                 </div>
               )}
               <motion.button
                 type="submit"
                 disabled={isSending || !email}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full py-3 px-4 text-white font-bold rounded-lg bg-[#1A1A1A] hover:bg-[#2A2A2A] disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#1A1A1A]/20"
+                className="group relative w-full py-4 px-6 bg-[#2C2B28] text-[#F9F6EF] font-mono font-bold text-sm uppercase tracking-[0.2em] transition-all disabled:opacity-60 disabled:cursor-not-allowed hover:bg-[#5A3A2A] shadow-[4px_4px_0_0_rgba(0,0,0,0.2)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
               >
                 {isSending ? "Sending..." : "Send Reset Code"}
               </motion.button>
@@ -255,9 +240,9 @@ export function ForgotPasswordForm() {
 
           {/* Step 2: OTP Input */}
           {step === "OTP" && (
-            <form onSubmit={onVerifyOTP} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-sm font-semibold text-[#1A1A1A] ml-1 block text-center">
+            <form onSubmit={onVerifyOTP} className="space-y-5">
+              <div>
+                <label className="block text-[0.7rem] font-mono font-bold uppercase tracking-wider text-[#2C2B28] mb-2 text-center">
                   6-Digit Code
                 </label>
                 <input
@@ -267,35 +252,33 @@ export function ForgotPasswordForm() {
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
                   placeholder="000000"
                   required
-                  className="w-full text-center text-3xl tracking-[0.4em] font-mono py-3 bg-white border border-[#1A1A1A]/20 rounded-lg focus:ring-2 focus:ring-[#1A1A1A]/30 focus:border-[#1A1A1A] outline-none transition-all text-[#1A1A1A]"
+                  className="w-full text-center text-3xl tracking-[0.4em] font-mono py-3 bg-[#F9F6EF] border-2 border-[#2C2B28] focus:outline-none focus:ring-0 focus:bg-white transition-colors text-[#2C2B28]"
                 />
               </div>
               {error && (
-                <div className="p-3 text-sm text-red-600 bg-red-50/80 backdrop-blur-sm rounded-lg border border-red-200">
+                <div className="p-3 text-[0.75rem] font-mono uppercase font-bold tracking-wide text-[#F9F6EF] bg-[#9B2C2C] border-2 border-[#2C2B28]">
                   {error}
                 </div>
               )}
               {success && (
-                <div className="p-3 text-sm text-emerald-700 bg-emerald-50/80 backdrop-blur-sm rounded-lg border border-emerald-200">
+                <div className="p-3 text-[0.75rem] font-mono uppercase font-bold tracking-wide text-[#F9F6EF] bg-[#2C2B28] border-2 border-[#2C2B28]">
                   {success}
                 </div>
               )}
               <motion.button
                 type="submit"
                 disabled={isVerifying || otp.length !== 6}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full py-3 px-4 text-white font-bold rounded-lg bg-[#1A1A1A] hover:bg-[#2A2A2A] disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#1A1A1A]/20"
+                className="group relative w-full py-4 px-6 bg-[#2C2B28] text-[#F9F6EF] font-mono font-bold text-sm uppercase tracking-[0.2em] transition-all disabled:opacity-60 disabled:cursor-not-allowed hover:bg-[#5A3A2A] shadow-[4px_4px_0_0_rgba(0,0,0,0.2)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
               >
                 {isVerifying ? "Verifying..." : "Verify & Continue"}
               </motion.button>
 
-              <div className="text-center">
+              <div className="text-center pt-2">
                 <button
                   type="button"
                   disabled={resendCooldown > 0 || isSending}
                   onClick={onRequestOTP}
-                  className="text-sm font-medium text-[#1A1A1A]/70 hover:text-[#1A1A1A] disabled:text-[#1A1A1A]/30 disabled:cursor-not-allowed transition-colors"
+                  className="text-[0.65rem] font-mono font-bold uppercase tracking-wider text-[#6B5E4A] hover:text-[#9B2C2C] disabled:text-[#6B5E4A]/50 disabled:cursor-not-allowed transition-colors hover:underline decoration-2 underline-offset-4"
                 >
                   {isSending
                     ? "Sending..."
@@ -309,10 +292,10 @@ export function ForgotPasswordForm() {
 
           {/* Step 3: New Password */}
           {step === "RESET" && (
-            <form onSubmit={onResetPassword} className="space-y-4">
-              <div className="space-y-3">
-                <div className="space-y-1">
-                  <label className="text-sm font-semibold text-[#1A1A1A] ml-1">
+            <form onSubmit={onResetPassword} className="space-y-5">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-[0.7rem] font-mono font-bold uppercase tracking-wider text-[#2C2B28] mb-2">
                     New Password
                   </label>
                   <input
@@ -321,11 +304,11 @@ export function ForgotPasswordForm() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     required
-                    className="w-full px-4 py-2.5 bg-white border border-[#1A1A1A]/20 rounded-lg focus:ring-2 focus:ring-[#1A1A1A]/30 focus:border-[#1A1A1A] outline-none transition-all text-[#1A1A1A] placeholder:text-[#1A1A1A]/40"
+                    className="w-full px-4 py-3 bg-[#F9F6EF] border-2 border-[#2C2B28] focus:outline-none focus:ring-0 focus:bg-white transition-colors text-[#2C2B28] font-serif placeholder:font-serif placeholder:italic placeholder:text-[#6B5E4A]/50"
                   />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-sm font-semibold text-[#1A1A1A] ml-1">
+                <div>
+                  <label className="block text-[0.7rem] font-mono font-bold uppercase tracking-wider text-[#2C2B28] mb-2">
                     Confirm New Password
                   </label>
                   <input
@@ -334,17 +317,17 @@ export function ForgotPasswordForm() {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="••••••••"
                     required
-                    className="w-full px-4 py-2.5 bg-white border border-[#1A1A1A]/20 rounded-lg focus:ring-2 focus:ring-[#1A1A1A]/30 focus:border-[#1A1A1A] outline-none transition-all text-[#1A1A1A] placeholder:text-[#1A1A1A]/40"
+                    className="w-full px-4 py-3 bg-[#F9F6EF] border-2 border-[#2C2B28] focus:outline-none focus:ring-0 focus:bg-white transition-colors text-[#2C2B28] font-serif placeholder:font-serif placeholder:italic placeholder:text-[#6B5E4A]/50"
                   />
                 </div>
               </div>
               {error && (
-                <div className="p-3 text-sm text-red-600 bg-red-50/80 backdrop-blur-sm rounded-lg border border-red-200">
+                <div className="p-3 text-[0.75rem] font-mono uppercase font-bold tracking-wide text-[#F9F6EF] bg-[#9B2C2C] border-2 border-[#2C2B28]">
                   {error}
                 </div>
               )}
               {success && (
-                <div className="p-3 text-sm text-emerald-700 bg-emerald-50/80 backdrop-blur-sm rounded-lg border border-emerald-200">
+                <div className="p-3 text-[0.75rem] font-mono uppercase font-bold tracking-wide text-[#F9F6EF] bg-[#2C2B28] border-2 border-[#2C2B28]">
                   {success}
                 </div>
               )}
@@ -353,9 +336,7 @@ export function ForgotPasswordForm() {
                 disabled={
                   isResetting || !password || password !== confirmPassword
                 }
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full py-3 px-4 text-white font-bold rounded-lg bg-[#1A1A1A] hover:bg-[#2A2A2A] disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#1A1A1A]/20"
+                className="group relative w-full py-4 px-6 bg-[#2C2B28] text-[#F9F6EF] font-mono font-bold text-sm uppercase tracking-[0.2em] transition-all disabled:opacity-60 disabled:cursor-not-allowed hover:bg-[#5A3A2A] shadow-[4px_4px_0_0_rgba(0,0,0,0.2)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
               >
                 {isResetting ? "Updating..." : "Update Password"}
               </motion.button>
@@ -363,25 +344,12 @@ export function ForgotPasswordForm() {
           )}
 
           {/* Footer Navigation - Back to Home Page only */}
-          <div className="flex justify-center pt-2 border-t border-[#1A1A1A]/5">
+          <div className="flex justify-center pt-6 border-t border-[#2C2B28]/20">
             <Link
               href="/"
-              className="inline-flex items-center gap-1.5 text-[#1A1A1A]/60 hover:text-[#1A1A1A] transition-colors group text-sm font-medium"
+              className="text-[0.65rem] font-mono font-bold uppercase tracking-wider text-[#6B5E4A] hover:text-[#2C2B28] transition-colors hover:underline decoration-2 underline-offset-4"
             >
-              <svg
-                className="w-4 h-4 transform group-hover:-translate-x-0.5 transition-transform"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                />
-              </svg>
-              Back to Home
+              ← Back to Home
             </Link>
           </div>
         </div>

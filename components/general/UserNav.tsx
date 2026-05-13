@@ -32,7 +32,7 @@ export function UserNav({ user }: UserNavProps) {
     return (
       <Link
         href="/auth/sign-in"
-        className="px-6 py-2.5 bg-slate-900 text-white text-[0.65rem] font-black uppercase tracking-[0.2em] shadow-[4px_4px_0px_0px_rgba(225,29,72,0.4)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+        className="px-6 py-3 bg-[#2C2B28] text-[#F9F6EF] text-[0.65rem] font-mono font-bold uppercase tracking-[0.2em] shadow-[3px_3px_0_0_rgba(0,0,0,0.2)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] hover:bg-[#5A3A2A] transition-all"
       >
         Sign In
       </Link>
@@ -47,16 +47,16 @@ export function UserNav({ user }: UserNavProps) {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-1 py-1 border-2 border-slate-900 bg-white shadow-[2px_2px_0px_0px_rgba(15,23,42,0.1)] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] transition-all focus:outline-none"
+        className="flex items-center gap-2 px-1 py-1 border-2 border-[#2C2B28] bg-[#F9F6EF] shadow-[3px_3px_0_0_rgba(0,0,0,0.2)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all focus:outline-none group"
       >
-        <div className="w-8 h-8 bg-slate-100 flex items-center justify-center text-slate-900 font-serif text-xs font-bold border-r border-slate-900">
+        <div className="w-8 h-8 bg-[#2C2B28] flex items-center justify-center text-[#F9F6EF] font-serif text-xs font-bold border-r-2 border-[#2C2B28]">
           {user.image ? (
             <img src={user.image} alt="Avatar" className="w-full h-full object-cover" />
           ) : (
             initials
           )}
         </div>
-        <ChevronDown size={14} className={`text-slate-500 mr-1 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown size={14} className={`text-[#2C2B28] mr-1 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       <AnimatePresence>
@@ -66,42 +66,32 @@ export function UserNav({ user }: UserNavProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 5 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 mt-2 w-56 bg-white border-2 border-slate-900 shadow-[6px_6px_0px_0px_rgba(15,23,42,0.1)] z-50 origin-top-right overflow-hidden"
+            className="absolute right-0 mt-2 w-56 bg-[#F9F6EF] border-2 border-[#2C2B28] shadow-[6px_6px_0_0_rgba(0,0,0,0.2)] z-50 origin-top-right overflow-hidden"
           >
             {/* Header / Info */}
-            <div className="p-4 bg-slate-50 border-b border-slate-900/10">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="px-1.5 py-0.5 bg-slate-900 text-white text-[0.5rem] font-bold uppercase tracking-tighter">
-                  Subscriber
-                </span>
-                <span className="text-[0.55rem] font-black uppercase tracking-widest text-slate-400">
-                  ID: #{user.email?.split('@')[0].substring(0, 4)}
-                </span>
+            <div className="p-4 border-b-2 border-[#2C2B28] relative">
+              <div className="absolute inset-0 pointer-events-none opacity-20 bg-[url('https://www.transparenttextures.com/patterns/old-paper.png')] mix-blend-multiply" aria-hidden="true" />
+              
+              <div className="relative z-10">
+                <p className="text-sm font-serif font-black text-[#2C2B28] truncate uppercase">
+                  {user.name || "Anonymous Mob"}
+                </p>
+                <p className="text-[0.6rem] font-mono font-bold tracking-widest uppercase text-[#6B5E4A] truncate mt-1">
+                  {user.email}
+                </p>
               </div>
-              <p className="text-sm font-serif font-bold text-slate-900 truncate uppercase">
-                {user.name || "Anonymous Mob"}
-              </p>
-              <p className="text-[0.6rem] font-black tracking-widest uppercase text-slate-400 truncate mt-1">
-                {user.email}
-              </p>
             </div>
 
             {/* Menu Actions */}
-            <div className="p-1">
+            <div className="p-1 bg-[#F9F6EF] relative">
+              <div className="absolute inset-0 pointer-events-none opacity-10 bg-[url('https://www.transparenttextures.com/patterns/old-paper.png')] mix-blend-multiply" aria-hidden="true" />
               <button
                 onClick={() => signOut({ callbackUrl: "/" })}
-                className="w-full flex items-center gap-3 px-3 py-3 text-[0.65rem] font-black tracking-widest uppercase text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors text-left"
+                className="relative z-10 w-full flex items-center gap-3 px-3 py-3 text-[0.65rem] font-mono font-bold tracking-widest uppercase text-[#3A3126] hover:text-[#F9F6EF] hover:bg-[#9B2C2C] transition-colors text-left"
               >
                 <LogOut className="w-3.5 h-3.5" />
-                Cancel Subscription
+                Log Out
               </button>
-            </div>
-            
-            {/* Sarcastic footer */}
-            <div className="px-4 py-2 bg-slate-50 border-t border-slate-900/5">
-              <p className="text-[0.5rem] font-serif italic text-slate-400 text-center">
-                &quot;Read responsibly. Roasts are sharp.&quot;
-              </p>
             </div>
           </motion.div>
         )}

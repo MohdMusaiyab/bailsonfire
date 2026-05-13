@@ -6,7 +6,7 @@ export async function Navbar() {
   const session = await auth();
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-[#F9F6EF]/90 backdrop-blur-md border-b-2 border-[#2C2B28] overflow-hidden">
+    <header className="sticky top-0 z-50 w-full bg-[#F9F6EF]/90 backdrop-blur-md border-b-2 border-[#2C2B28]">
       {/* Paper texture overlay – subtle */}
       <div className="absolute inset-0 z-0 pointer-events-none opacity-10 bg-[url('https://www.transparenttextures.com/patterns/old-paper.png')] mix-blend-multiply" />
 

@@ -102,21 +102,20 @@ export function VerifyEmailForm({ email, isSessionAuth }: VerifyEmailFormProps) 
   }, [resendCooldown]);
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#FCFBF7] px-4 py-12">
-      {/* Subtle floating background orbs */}
-      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <motion.div
-          className="absolute rounded-full bg-[#1A1A1A]/5 blur-3xl"
-          style={{ width: "400px", height: "400px", left: "-10%", top: "20%" }}
-          animate={{ x: [0, 30, 0], y: [0, -20, 0], opacity: [0.3, 0.6, 0.3] }}
-          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute rounded-full bg-[#1A1A1A]/5 blur-3xl"
-          style={{ width: "500px", height: "500px", right: "-15%", bottom: "10%" }}
-          animate={{ x: [0, -40, 0], y: [0, 30, 0], opacity: [0.2, 0.5, 0.2] }}
-          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-        />
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#F9F6EF] px-4 py-12">
+      {/* Paper texture overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-20 bg-[url('https://www.transparenttextures.com/patterns/old-paper.png')] mix-blend-multiply"
+        aria-hidden="true"
+      />
+
+      {/* Vintage newspaper background lines */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-10"
+        aria-hidden="true"
+      >
+        <div className="h-full w-px bg-[#2C2B28] absolute left-5 md:left-20" />
+        <div className="h-full w-px bg-[#2C2B28] absolute right-5 md:right-20" />
       </div>
 
       <motion.div
@@ -125,24 +124,25 @@ export function VerifyEmailForm({ email, isSessionAuth }: VerifyEmailFormProps) 
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="relative z-10 w-full max-w-md"
       >
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-[#1A1A1A]/10 p-8 space-y-6">
-          <div className="space-y-2 text-center">
-            <h2 className="text-3xl font-black tracking-tight text-[#1A1A1A]">
-              Verify Your{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#1A1A1A] to-[#1A1A1A]/50">
-                Email
-              </span>
+        <div className="bg-[#F9F6EF] border-2 border-[#2C2B28] p-8 md:p-10 shadow-[8px_8px_0_0_rgba(0,0,0,0.2)] space-y-8 relative">
+          {/* Vintage top double border */}
+          <div className="absolute top-0 left-0 w-full h-1 bg-[#2C2B28]" />
+          <div className="absolute top-2 left-0 w-full h-px bg-[#2C2B28]" />
+
+          <div className="space-y-3 text-center pt-2">
+            <h2 className="text-3xl md:text-4xl font-black tracking-tight text-[#2C2B28] uppercase leading-[1.1]">
+              Verify Email
             </h2>
-            <p className="text-[#4A4A4A] text-sm font-medium">
+            <p className="text-[#3A3126] text-sm font-medium border-b border-[#2C2B28]/20 pb-4 inline-block">
               {hasSentCode ? (
                 <>
                   Enter the code sent to <br />
-                  <span className="text-[#1A1A1A] font-bold">{email}</span>
+                  <span className="text-[#2C2B28] font-bold">{email}</span>
                 </>
               ) : (
                 <>
                   Ready to roast? Send a code to <br />
-                  <span className="text-[#1A1A1A] font-bold">{email}</span>
+                  <span className="text-[#2C2B28] font-bold">{email}</span>
                 </>
               )}
             </p>
@@ -152,14 +152,12 @@ export function VerifyEmailForm({ email, isSessionAuth }: VerifyEmailFormProps) 
             <motion.button
               onClick={onSendCode}
               disabled={isSending}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="w-full py-4 px-4 text-white font-bold rounded-xl bg-[#1A1A1A] hover:bg-[#2A2A2A] disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#1A1A1A]/20"
+              className="group relative w-full py-4 px-6 bg-[#2C2B28] text-[#F9F6EF] font-mono font-bold text-sm uppercase tracking-[0.2em] transition-all disabled:opacity-60 disabled:cursor-not-allowed hover:bg-[#5A3A2A] shadow-[4px_4px_0_0_rgba(0,0,0,0.2)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
             >
               {isSending ? "Sending Code..." : "Send Verification Code"}
             </motion.button>
           ) : (
-            <form onSubmit={onVerify} className="space-y-4">
+            <form onSubmit={onVerify} className="space-y-5">
               <div>
                 <input
                   type="text"
@@ -167,7 +165,7 @@ export function VerifyEmailForm({ email, isSessionAuth }: VerifyEmailFormProps) 
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
                   placeholder="000000"
-                  className="w-full text-center text-3xl tracking-[0.4em] font-mono py-4 bg-white border border-[#1A1A1A]/20 rounded-xl focus:ring-2 focus:ring-[#1A1A1A]/30 focus:border-[#1A1A1A] outline-none transition-all text-[#1A1A1A]"
+                  className="w-full text-center text-3xl tracking-[0.4em] font-mono py-3 bg-[#F9F6EF] border-2 border-[#2C2B28] focus:outline-none focus:ring-0 focus:bg-white transition-colors text-[#2C2B28]"
                   disabled={isVerifying || isSending}
                   required
                   autoFocus
@@ -175,12 +173,12 @@ export function VerifyEmailForm({ email, isSessionAuth }: VerifyEmailFormProps) 
               </div>
 
               {error && (
-                <div className="p-3 text-sm text-red-600 bg-red-50/80 backdrop-blur-sm rounded-lg border border-red-200 text-center">
+                <div className="p-3 text-[0.75rem] font-mono uppercase font-bold tracking-wide text-[#F9F6EF] bg-[#9B2C2C] border-2 border-[#2C2B28] text-center">
                   {error}
                 </div>
               )}
               {success && (
-                <div className="p-3 text-sm text-emerald-700 bg-emerald-50/80 backdrop-blur-sm rounded-lg border border-emerald-200 text-center">
+                <div className="p-3 text-[0.75rem] font-mono uppercase font-bold tracking-wide text-[#F9F6EF] bg-[#2C2B28] border-2 border-[#2C2B28] text-center">
                   {success}
                 </div>
               )}
@@ -188,9 +186,7 @@ export function VerifyEmailForm({ email, isSessionAuth }: VerifyEmailFormProps) 
               <motion.button
                 type="submit"
                 disabled={isVerifying || isSending || otp.length !== 6}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full py-4 px-4 text-white font-bold rounded-xl bg-[#1A1A1A] hover:bg-[#2A2A2A] disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#1A1A1A]/20"
+                className="group relative w-full py-4 px-6 bg-[#2C2B28] text-[#F9F6EF] font-mono font-bold text-sm uppercase tracking-[0.2em] transition-all disabled:opacity-60 disabled:cursor-not-allowed hover:bg-[#5A3A2A] shadow-[4px_4px_0_0_rgba(0,0,0,0.2)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
               >
                 {isVerifying ? "Verifying..." : "Verify Code"}
               </motion.button>
@@ -200,7 +196,7 @@ export function VerifyEmailForm({ email, isSessionAuth }: VerifyEmailFormProps) 
                   type="button"
                   onClick={onSendCode}
                   disabled={isVerifying || isSending || resendCooldown > 0}
-                  className="text-sm font-medium text-[#1A1A1A]/70 hover:text-[#1A1A1A] transition-colors disabled:text-[#1A1A1A]/30 disabled:cursor-not-allowed"
+                  className="text-[0.65rem] font-mono font-bold uppercase tracking-wider text-[#6B5E4A] hover:text-[#9B2C2C] disabled:text-[#6B5E4A]/50 disabled:cursor-not-allowed transition-colors hover:underline decoration-2 underline-offset-4"
                 >
                   {isSending
                     ? "Sending code..."
@@ -212,12 +208,12 @@ export function VerifyEmailForm({ email, isSessionAuth }: VerifyEmailFormProps) 
             </form>
           )}
 
-          <div className="flex flex-col items-center gap-3 pt-2 border-t border-[#1A1A1A]/5">
+          <div className="flex justify-center pt-6 border-t border-[#2C2B28]/20">
              <Link
               href="/"
-              className="text-sm text-[#1A1A1A]/60 hover:text-[#1A1A1A] transition-colors font-medium"
+              className="text-[0.65rem] font-mono font-bold uppercase tracking-wider text-[#6B5E4A] hover:text-[#2C2B28] transition-colors hover:underline decoration-2 underline-offset-4"
             >
-              Back to Home Page
+              ← Back to Home
             </Link>
           </div>
         </div>
