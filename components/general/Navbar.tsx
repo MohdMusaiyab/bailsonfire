@@ -6,45 +6,40 @@ export async function Navbar() {
   const session = await auth();
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-[#FBFBF9]/90 backdrop-blur-md border-b-2 border-slate-900 overflow-hidden">
-      {/* ── GRAIN OVERLAY ─────────────────────────────────────────── */}
-      <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/p6-dark.png')]" />
-      
-      <div className="container relative z-10 mx-auto px-6 md:px-8 h-16 flex items-center justify-between">
+    <header className="sticky top-0 z-50 w-full bg-[#F9F6EF]/90 backdrop-blur-md border-b-2 border-[#2C2B28] overflow-hidden">
+      {/* Paper texture overlay – subtle */}
+      <div className="absolute inset-0 z-0 pointer-events-none opacity-10 bg-[url('https://www.transparenttextures.com/patterns/old-paper.png')] mix-blend-multiply" />
+
+      <div className="container relative z-10 mx-auto px-6 md:px-10 h-20 flex items-center justify-between">
         {/* LOGO / BRANDING */}
         <Link href="/" className="flex items-center gap-4 group">
-          <div className="px-2 py-1 bg-slate-900 text-white font-serif text-xl leading-none shadow-[3px_3px_0px_0px_rgba(225,29,72,0.6)] group-hover:shadow-none group-hover:translate-x-[2px] group-hover:translate-y-[2px] transition-all">
+          <div className="px-3 py-1.5 bg-[#2C2B28] text-[#F9F6EF] font-serif text-2xl leading-none shadow-[3px_3px_0_0_rgba(0,0,0,0.2)] group-hover:shadow-none group-hover:translate-x-[2px] group-hover:translate-y-[2px] transition-all">
             B
           </div>
-          <div className="flex flex-col">
-            <span className="font-serif font-black tracking-tighter text-xl text-slate-900 leading-none uppercase">
-              Bails on Fire
-            </span>
-            <span className="text-[0.55rem] font-black uppercase tracking-[0.2em] text-slate-400 leading-none mt-1 hidden sm:block">
-              IPL Edition &middot; Vol. 2026
-            </span>
-          </div>
+          <span className="font-serif font-black tracking-tighter text-2xl text-[#2C2B28] leading-none uppercase mt-1">
+            Bails on Fire
+          </span>
         </Link>
 
         {/* ACTIONS / NAVIGATION */}
         <div className="flex items-center gap-6">
           <nav className="hidden md:flex items-center gap-8">
-            <Link 
-              href="/matches/2026" 
-              className="text-[0.65rem] font-black uppercase tracking-widest text-slate-500 hover:text-slate-900 hover:underline decoration-rose-500 decoration-2 underline-offset-4 transition-colors"
+            <Link
+              href="/matches/2026"
+              className="text-[0.7rem] font-mono font-bold uppercase tracking-widest text-[#3A3126] hover:text-[#5A3A2A] hover:underline decoration-[#9B2C2C] decoration-2 underline-offset-4 transition-colors"
             >
               Archives
             </Link>
-            <Link 
-              href="#wall-of-shame" 
-              className="text-[0.65rem] font-black uppercase tracking-widest text-slate-500 hover:text-slate-900 hover:underline decoration-rose-500 decoration-2 underline-offset-4 transition-colors"
+            <Link
+              href="#wall-of-shame"
+              className="text-[0.7rem] font-mono font-bold uppercase tracking-widest text-[#3A3126] hover:text-[#5A3A2A] hover:underline decoration-[#9B2C2C] decoration-2 underline-offset-4 transition-colors"
             >
               Hall of Shame
             </Link>
           </nav>
-          
-          <div className="h-6 w-px bg-slate-200 hidden md:block" />
-          
+
+          <div className="h-6 w-px bg-[#2C2B28]/20 hidden md:block" />
+
           <UserNav user={session?.user} />
         </div>
       </div>

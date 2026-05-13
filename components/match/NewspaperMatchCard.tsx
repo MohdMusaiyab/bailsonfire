@@ -11,7 +11,7 @@ import {
 } from "@/lib/utils/match";
 import { Flame, MessageCircle, ArrowRight, Trophy } from "lucide-react";
 
-// ─── Team accent colours ────────────────────────────────────────────────────
+// Team accent colours (keep as is – these are fine, just used for tiny dots)
 const TEAM_COLORS: Record<string, string> = {
   "Mumbai Indians": "#004BA0",
   "Chennai Super Kings": "#C8A800",
@@ -27,9 +27,6 @@ const TEAM_COLORS: Record<string, string> = {
 
 const teamColor = (name: string): string =>
   TEAM_COLORS[normalizeTeamName(name)] ?? "#6B7280";
-
-// ─── Simple label for all cards ──────────────────────────────────────────
-const CARD_LABEL = "Latest Roast";
 
 export function NewspaperMatchCard({
   match,
@@ -75,33 +72,30 @@ export function NewspaperMatchCard({
       transition={{ delay: index * 0.15, duration: 0.5 }}
       className={`group relative flex flex-col ${
         !isLast
-          ? "border-b md:border-b-0 md:border-r border-slate-900/15"
+          ? "border-b md:border-b-0 md:border-r border-[#2C2B28]/15"
           : ""
       } ${index === 0 ? "" : "md:pl-8"} ${isLast ? "" : "md:pr-8"} pb-10 md:pb-0`}
     >
-      {/* ── Historical blur overlay ────────────────────────────────── */}
+      {/* Historical overlay – vintage styled */}
       {isHistorical && (
-        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#FBFBF9]/60 backdrop-blur-[3px]">
-          <div className="bg-slate-900 text-white px-4 py-2 text-[0.6rem] font-black uppercase tracking-[0.2em] shadow-[2px_2px_0px_0px_rgba(225,29,72,0.4)]">
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#F9F6EF]/80 backdrop-blur-[2px]">
+          <div className="bg-[#2C2B28] text-[#F9F6EF] px-4 py-2 text-[0.6rem] font-mono font-bold uppercase tracking-[0.2em] shadow-[2px_2px_0_0_rgba(0,0,0,0.2)]">
             Under Investigation
           </div>
-          <p className="mt-3 text-[0.6rem] font-black text-slate-400 uppercase tracking-widest">
+          <p className="mt-3 text-[0.6rem] font-mono text-[#6B5E4A] uppercase tracking-widest">
             Roasts from {matchYear} — Coming Soon
           </p>
         </div>
       )}
 
-      {/* ── Label + Date ─────────────────────────────────────────── */}
-      <div className="flex items-center gap-3 mb-4">
-        <span className="px-2 py-0.5 bg-rose-600 text-white text-[0.55rem] font-bold uppercase tracking-tighter shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-          {CARD_LABEL}
-        </span>
-        <span className="text-[0.55rem] font-black uppercase tracking-widest text-slate-500">
+      {/* Date only – no label badge */}
+      <div className="mb-4">
+        <span className="text-[0.55rem] font-mono font-bold uppercase tracking-widest text-[#6B5E4A]">
           {dateLabel}
         </span>
       </div>
 
-      {/* ── Matchup Line ───────────────────────────────────────────── */}
+      {/* Matchup line */}
       <div className="flex items-center gap-3 mb-2">
         <span className="flex items-center gap-1.5">
           <span
@@ -109,11 +103,11 @@ export function NewspaperMatchCard({
             style={{ background: teamColor(match.homeTeam) }}
             aria-hidden="true"
           />
-          <span className="text-[0.7rem] font-black uppercase tracking-wide text-slate-900">
+          <span className="text-[0.7rem] font-mono font-bold uppercase tracking-wide text-[#2C2B28]">
             {homeShort}
           </span>
         </span>
-        <span className="text-[0.6rem] font-black text-slate-900 uppercase tracking-[0.2em]">
+        <span className="text-[0.6rem] font-mono font-bold text-[#2C2B28] uppercase tracking-[0.2em]">
           vs
         </span>
         <span className="flex items-center gap-1.5">
@@ -122,57 +116,56 @@ export function NewspaperMatchCard({
             style={{ background: teamColor(match.awayTeam) }}
             aria-hidden="true"
           />
-          <span className="text-[0.7rem] font-black uppercase tracking-wide text-slate-900">
+          <span className="text-[0.7rem] font-mono font-bold uppercase tracking-wide text-[#2C2B28]">
             {awayShort}
           </span>
         </span>
       </div>
 
-      {/* ── Headline ───────────────────────────────────────────────── */}
+      {/* Headline */}
       <Link
         href={isHistorical ? "#" : `/match/${match.externalId}`}
         className={`block no-underline ${isHistorical ? "cursor-default" : ""}`}
       >
-        <h3 className="text-2xl md:text-[1.65rem] font-serif leading-[1.15] text-slate-900 mb-3 group-hover:text-rose-700 transition-colors uppercase">
+        <h3 className="text-2xl md:text-[1.65rem] font-serif font-bold leading-[1.2] text-[#2C2B28] mb-3 group-hover:text-[#5A3A2A] transition-colors uppercase tracking-tight">
           {headline}
         </h3>
       </Link>
 
-      {/* ── Score Summary ──────────────────────────────────────────── */}
-      <p className="text-[0.75rem] font-black tracking-tight text-slate-600 uppercase mb-4 leading-relaxed">
+      {/* Score summary */}
+      <p className="text-[0.75rem] font-mono font-bold tracking-tight text-[#6B5E4A] uppercase mb-4 leading-relaxed">
         {cleanScore}
       </p>
 
-      {/* ── Roast Teaser with Drop Cap ─────────────────────────────── */}
+      {/* Roast teaser with drop cap */}
       <div className="flex-1 mb-6">
         {roastTeaser ? (
-          <p className="text-[0.85rem] font-serif text-slate-600 leading-relaxed first-letter:text-4xl first-letter:font-serif first-letter:mr-2 first-letter:float-left first-letter:text-slate-900 first-letter:leading-[0.8] first-letter:pt-1">
+          <p className="text-[0.85rem] font-serif text-[#3A3126] leading-relaxed first-letter:text-4xl first-letter:font-serif first-letter:font-bold first-letter:mr-2 first-letter:float-left first-letter:text-[#2C2B28] first-letter:leading-[0.8] first-letter:pt-1">
             {roastTeaser}
           </p>
         ) : (
-          <div className="border-2 border-dashed border-slate-300 p-4 bg-slate-50">
-            <p className="text-[0.65rem] font-black text-slate-500 uppercase tracking-[0.2em] leading-relaxed">
+          <div className="border-2 border-dashed border-[#2C2B28]/20 p-4 bg-[#F3EFE6]">
+            <p className="text-[0.65rem] font-mono font-bold text-[#6B5E4A] uppercase tracking-[0.2em] leading-relaxed">
               Roast is being prepared. Our editors are working on it.
             </p>
           </div>
         )}
       </div>
 
-
-      {/* ── Footer Stats + CTA ─────────────────────────────────────── */}
-      <div className="flex items-center justify-between pt-4 border-t-2 border-slate-900/10">
+      {/* Footer stats + CTA */}
+      <div className="flex items-center justify-between pt-4 border-t-2 border-[#2C2B28]/10">
         <div className="flex items-center gap-4">
           {/* Winner badge */}
           {winnerNormalized && (
-            <span className="hidden sm:inline-flex items-center gap-1 text-[0.6rem] font-black uppercase tracking-wider text-emerald-700">
-              <Trophy size={11} /> {getTeamShortName(winnerNormalized)}
+            <span className="hidden sm:inline-flex items-center gap-1 text-[0.6rem] font-mono font-bold uppercase tracking-wider text-[#2C2B28]">
+              <Trophy size={11} className="text-[#9B2C2C]" /> {getTeamShortName(winnerNormalized)}
             </span>
           )}
-          <span className="inline-flex items-center gap-1 text-[0.65rem] font-bold text-slate-400">
-            <Flame size={12} className="text-rose-500" />{" "}
+          <span className="inline-flex items-center gap-1 text-[0.65rem] font-mono font-bold text-[#6B5E4A]">
+            <Flame size={12} className="text-[#9B2C2C]" />{" "}
             {match.reactionsCount}
           </span>
-          <span className="inline-flex items-center gap-1 text-[0.65rem] font-bold text-slate-400">
+          <span className="inline-flex items-center gap-1 text-[0.65rem] font-mono font-bold text-[#6B5E4A]">
             <MessageCircle size={12} /> {match.commentsCount}
           </span>
         </div>
@@ -180,7 +173,7 @@ export function NewspaperMatchCard({
         {!isHistorical && (
           <Link
             href={`/match/${match.externalId}`}
-            className="group/cta inline-flex items-center gap-1.5 text-[0.6rem] font-black uppercase tracking-[0.15em] text-slate-900 hover:text-rose-600 transition-colors"
+            className="group/cta inline-flex items-center gap-1.5 text-[0.6rem] font-mono font-bold uppercase tracking-[0.15em] text-[#2C2B28] hover:text-[#5A3A2A] transition-colors"
           >
             Read Full Roast
             <ArrowRight

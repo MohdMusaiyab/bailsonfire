@@ -13,12 +13,13 @@
 
 import "dotenv/config";
 import { fetchNewIPLMatches } from "../lib/ai/cricapi.js";
+import { generateMatchRoast } from "../lib/ai/gemini.js";
 import { prisma } from "../lib/prisma.js";
 import { Prisma } from "@prisma/client";
 
 async function runLiveIngestion(): Promise<void> {
   console.log("==================================================");
-  console.log("🏏 IPL LIVE BATCH INGESTION — MATCH + SCORECARD");
+  console.log("🏏 IPL LIVE BATCH INGESTION — MATCH + AI ROAST");
   console.log("==================================================");
 
   if (!process.env.CRICEKT_DATA_API) {
@@ -27,7 +28,7 @@ async function runLiveIngestion(): Promise<void> {
   }
 
   // ── Stage 1: Fetch ALL new completed IPL matches ──────────────────────────
-  console.log("\n[1/2] Checking CricAPI for new completed IPL matches...");
+  console.log("\n[1/3] Checking CricAPI for new completed IPL matches...");
   const newMatches = await fetchNewIPLMatches();
 
   if (newMatches.length === 0) {
@@ -35,7 +36,7 @@ async function runLiveIngestion(): Promise<void> {
     return;
   }
 
-  console.log(`\n[2/2] Processing ${newMatches.length} new match(es)...`);
+  console.log(`\n[2/3] Processing ${newMatches.length} new match(es)...`);
 
   let successCount = 0;
 
@@ -66,9 +67,37 @@ async function runLiveIngestion(): Promise<void> {
           venue:            data.venue,
           playerOfTheMatch: data.playerOfMatch ?? null,
         },
+        include: {
+          summaries: true,
+        }
       });
 
       console.log(`   ✅ SUCCESS: Match ${saved.id} upserted.`);
+
+      // ── Stage 3: Generate AI Roast ────────────────────────────────────────
+      if (saved.summaries.length === 0) {
+        console.log(`   🔥 Generating AI Roast for ${externalId}...`);
+        try {
+          // generateMatchRoast expects Extract<AIResponseMatchPayload, { matchFound: true }>
+          // Our 'data' object from fetchNewIPLMatches is exactly that.
+          const { headline, roast } = await generateMatchRoast(data);
+          
+          await prisma.summary.create({
+            data: {
+              matchId:  saved.id,
+              headline: headline,
+              content:  roast,
+              aiModel:  "gemini-2.0-flash", // Match the model used in lib/ai/gemini.ts
+            }
+          });
+          console.log(`   ✨ Roast saved: "${headline}"`);
+        } catch (roastErr) {
+          console.error(`   ⚠️  AI Roast generation failed for ${externalId}:`, roastErr);
+        }
+      } else {
+        console.log(`   ℹ️  Roast already exists for ${externalId}. Skipping generation.`);
+      }
+
       successCount++;
     } catch (err) {
       console.error(`   ❌ FAILED to ingest ${externalId}:`, err);
@@ -78,7 +107,7 @@ async function runLiveIngestion(): Promise<void> {
   console.log("\n==================================================");
   console.log("✅ BATCH INGESTION COMPLETE");
   console.log(`   Total New Matches Found: ${newMatches.length}`);
-  console.log(`   Successfully Ingested  : ${successCount}`);
+  console.log(`   Successfully Processed : ${successCount}`);
   console.log("==================================================");
 }
 

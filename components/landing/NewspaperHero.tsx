@@ -3,15 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import {
-  Flame,
-  TrendingDown,
-  CloudRain,
-  AlertTriangle,
-  ArrowRight,
-  Terminal,
-  Newspaper,
-} from "lucide-react";
+import { Flame, TrendingDown, ArrowRight } from "lucide-react";
 import { getTeamShortName, shortenTeamNamesInSummary } from "@/lib/utils/match";
 
 interface HeroMatch {
@@ -46,14 +38,12 @@ interface NewspaperHeroProps {
 }
 
 const NewspaperHero = ({ data }: NewspaperHeroProps) => {
-  const { latestMatch, breakingNews, trendingScandals, totalMatches } = data;
-
-  console.log("DEBUG: DB Marquee Data (breakingNews):", breakingNews);
+  const { latestMatch, breakingNews, trendingScandals } = data;
 
   const leadRoast = latestMatch?.summaries[0];
   const leadHeadline = leadRoast?.headline || "THE DEATH OF INTENT";
+  const leadContent = leadRoast?.content || "";
 
-  // Format date for the masthead
   const today = new Date().toLocaleDateString("en-IN", {
     weekday: "long",
     year: "numeric",
@@ -62,48 +52,54 @@ const NewspaperHero = ({ data }: NewspaperHeroProps) => {
   });
 
   return (
-    <section className="relative pt-24 pb-20 px-6 bg-[#FBFBF9] overflow-hidden border-b-4 border-slate-900">
-      {/* ── GRAIN OVERLAY ─────────────────────────────────────────── */}
-      <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.05] bg-[url('https://www.transparenttextures.com/patterns/p6-dark.png')]" />
+    <section className="relative pt-20 pb-20 px-5 md:px-8 bg-[#F9F6EF] overflow-hidden border-b-4 border-[#2C2B28]">
+      {/* Paper texture overlay */}
+      <div className="absolute inset-0 pointer-events-none opacity-20 bg-[url('https://www.transparenttextures.com/patterns/old-paper.png')] mix-blend-multiply" />
 
-      <div className="container relative z-10 mx-auto">
-        {/* ── MASTHEAD ────────────────────────────────────────────── */}
-        <div className="flex flex-col items-center mb-12 border-b-2 border-slate-900 pb-8">
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
+      <div className="relative z-10 max-w-7xl mx-auto">
+        {/* ── MASTHEAD ── */}
+        <div className="text-center mb-12 border-b-2 border-[#2C2B28] pb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-[12vw] md:text-[10rem] font-serif leading-[0.8] text-slate-900 tracking-tighter text-center selection:bg-rose-500 selection:text-white"
+            className="space-y-4"
           >
-            BAILS ON FIRE
-          </motion.h1>
+            <h1 className="text-[15vw] sm:text-[12vw] md:text-9xl lg:text-[8rem] xl:text-[10rem] font-serif font-black tracking-tighter text-[#2C2B28] leading-[0.85]">
+              BAILS ON FIRE
+            </h1>
+            <div className="text-sm sm:text-base md:text-lg font-mono text-[#6B5E4A] uppercase tracking-wider">
+              {today}
+            </div>
+          </motion.div>
 
-          <div className="w-full h-1 bg-slate-900 mt-6" />
-          <div className="w-full h-px bg-slate-900 mt-1" />
-
-          {/* Breaking Ticker */}
-          <div className="flex justify-center w-full py-3 overflow-hidden bg-slate-900 text-white mt-1">
-            <div className="whitespace-nowrap flex items-center gap-12 animate-infinite-scroll">
+          {/* Breaking ticker – larger font on bigger screens */}
+          <div className="w-full mt-8 bg-[#2C2B28] text-[#F9F6EF] py-3 overflow-hidden border-y border-[#4A4238]">
+            <div className="whitespace-nowrap flex items-center gap-12 animate-infinite-scroll text-xs sm:text-sm md:text-base font-mono tracking-wider">
               {[1, 2].map((i) => (
                 <React.Fragment key={i}>
                   {breakingNews.map((news, idx) => (
                     <div
                       key={`${i}-${idx}`}
-                      className="flex items-center gap-4 font-black text-[0.7rem] uppercase tracking-widest"
+                      className="inline-flex items-center gap-4"
                     >
-                      <Flame size={14} className="text-rose-500" />
-                      {getTeamShortName(news.winner || "") ||
-                        "UNKNOWN"} CRUSHED{" "}
-                      {getTeamShortName(news.loser || "") || "OPPONENT"}:{" "}
-                      {shortenTeamNamesInSummary(news.scoreSummary)}
-                      <span className="text-slate-500">•</span>
+                      <Flame size={16} className="text-[#9B2C2C] shrink-0" />
+                      <span className="uppercase font-bold">
+                        {getTeamShortName(news.winner || "UNKNOWN")} CRUSHED{" "}
+                        {getTeamShortName(news.loser || "OPPONENT")}
+                      </span>
+                      <span className="text-[#B8A28E]">|</span>
+                      <span className="font-serif">
+                        {shortenTeamNamesInSummary(news.scoreSummary)}
+                      </span>
+                      {idx < breakingNews.length - 1 && (
+                        <span className="text-[#B8A28E] mx-2">•</span>
+                      )}
                     </div>
                   ))}
                   {breakingNews.length === 0 && (
-                    <div className="flex items-center gap-4 font-black text-[0.7rem] uppercase tracking-widest">
-                      <Flame size={14} className="text-rose-500" />
-                      BREAKING: AI MODELS LOADED & READY TO ROAST
-                      <span className="text-slate-500">•</span>
-                      EXPECT UNPRECEDENTED LEVELS OF SARCASM
+                    <div className="inline-flex items-center gap-4">
+                      <Flame size={16} className="text-[#9B2C2C]" />
+                      <span>PRESS ROOM WARMING UP • ROASTS INBOUND</span>
                     </div>
                   )}
                 </React.Fragment>
@@ -112,122 +108,129 @@ const NewspaperHero = ({ data }: NewspaperHeroProps) => {
           </div>
         </div>
 
-        {/* ── FRONT PAGE GRID ─────────────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          {/* LEAD STORY COLUMN (LEFT + CENTER) */}
-          <div className="lg:col-span-8 border-r-0 lg:border-r-2 border-slate-900 pr-0 lg:pr-12">
+        {/* ── TWO‑COLUMN LAYOUT ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-12 gap-y-12">
+          {/* LEFT COLUMN */}
+          <div className="lg:col-span-8 space-y-8">
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="space-y-6"
             >
-              <div className="flex items-center gap-3 mb-5">
-                <span className="px-2 py-0.5 bg-rose-600 text-white text-[0.6rem] font-bold uppercase tracking-tighter shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                  EDITORIAL
-                </span>
-                <span className="px-2 py-0.5 border border-slate-900 text-slate-900 text-[0.6rem] font-bold uppercase tracking-tighter">
-                  LATEST DISPATCH
-                </span>
-              </div>
-
-              <h2 className="text-5xl md:text-7xl font-serif leading-[1] text-slate-900 mb-8 hover:text-rose-700 transition-colors cursor-default uppercase tracking-tighter">
+              {/* Headline – much larger */}
+              <h2 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-serif font-bold leading-[1.1] text-[#2C2B28] tracking-tight">
                 {leadHeadline}
               </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                <div className="space-y-4">
-                  <p className="text-lg font-serif text-slate-700 leading-relaxed italic">
-                    &quot;The wicket was flat, the intent was flatter. Another
-                    day, another tactical disasterclass served on a
-                    platter...&quot;
-                  </p>
-                  <p className="text-sm font-serif text-slate-500 leading-relaxed">
-                    Our AI models have processed the wreckage of the latest
-                    match. The results are as predictable as a middle-order
-                    collapse in a run chase.
-                  </p>
-                </div>
-
-                <div className="p-6 bg-slate-50 border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,0.1)] relative overflow-hidden">
-                  <Terminal
-                    size={40}
-                    className="absolute -right-4 -bottom-4 text-slate-900/5 rotate-12"
-                  />
-                  <h3 className="font-black text-[0.65rem] uppercase tracking-widest text-rose-600 mb-3 flex items-center gap-2">
-                    <Newspaper size={14} /> Mission Statement
-                  </h3>
-                  <p className="text-[0.85rem] font-serif text-slate-900 leading-relaxed">
-                    <strong>Bails on Fire</strong> is the internet&apos;s most
-                    cynical cricket companion. We use advanced AI to say the
-                    things commentators are too polite to mention. We don&apos;t
-                    care about &quot;good intent&quot; &mdash; we care about the
-                    roast.
-                  </p>
-                </div>
+              {/* Drop cap + content – larger body text */}
+              <div className="prose prose-lg sm:prose-xl font-serif text-[#3A3126] max-w-none">
+                <p className="leading-relaxed text-base sm:text-lg md:text-xl">
+                  <span className="float-left text-7xl sm:text-8xl md:text-9xl font-serif font-bold leading-[0.8] mr-3 text-[#2C2B28]">
+                    {leadContent.charAt(0)}
+                  </span>
+                  {leadContent.slice(1)}
+                </p>
               </div>
 
-              <div className="flex flex-wrap gap-4 mt-12 pt-8 border-t border-slate-900/10">
+              {/* Match metadata – larger */}
+              {latestMatch && (
+                <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm sm:text-base font-mono text-[#6B5E4A] border-t border-[#2C2B28]/10 pt-5 mt-5">
+                  <span>📍 {latestMatch.venue || "Unknown Venue"}</span>
+                  <span>
+                    📅{" "}
+                    {latestMatch.matchDate?.toLocaleDateString() || "Date TBD"}
+                  </span>
+                  {latestMatch.scoreSummary && (
+                    <span>
+                      🏏 {shortenTeamNamesInSummary(latestMatch.scoreSummary)}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Action buttons – larger, more comfortable */}
+              <div className="flex flex-wrap gap-5 pt-4">
                 <Link
-                  href={`/match/${latestMatch?.externalId || "2026"}`}
-                  className="group px-8 py-4 bg-slate-900 text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-rose-600 transition-all flex items-center gap-3 shadow-[4px_4px_0px_0px_rgba(225,29,72,0.4)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
+                  href={`/match/${latestMatch?.externalId || "#"}`}
+                  className="group inline-flex items-center gap-3 bg-[#2C2B28] text-[#F9F6EF] px-8 py-4 text-sm sm:text-base font-mono font-bold uppercase tracking-[0.2em] hover:bg-[#5A3A2A] transition-all shadow-[4px_4px_0_0_rgba(0,0,0,0.2)] active:translate-x-[1px] active:translate-y-[1px]"
                 >
-                  Read Today&apos;s Roast{" "}
+                  Read Full Roast
                   <ArrowRight
-                    size={16}
+                    size={18}
                     className="transition-transform group-hover:translate-x-1"
                   />
                 </Link>
                 <Link
-                  href="/matches/2026"
-                  className="px-8 py-4 border-2 border-slate-900 text-slate-900 font-black text-xs uppercase tracking-[0.2em] hover:bg-slate-900 hover:text-white transition-all hover:shadow-[4px_4px_0px_0px_rgba(15,23,42,0.2)]"
+                  href="/matches"
+                  className="inline-flex items-center gap-3 border-2 border-[#2C2B28] px-8 py-4 text-sm sm:text-base font-mono font-bold uppercase tracking-[0.2em] text-[#2C2B28] hover:bg-[#2C2B28] hover:text-[#F9F6EF] transition-all"
                 >
                   Browse Archives
                 </Link>
               </div>
             </motion.div>
+
+            {/* Short description – larger text */}
+            <div className="border-l-4 border-[#9B2C2C] bg-[#F3EFE6] p-5 md:p-6">
+              <p className="text-base sm:text-lg font-serif text-[#3A3126] leading-relaxed">
+                <span className="font-bold uppercase tracking-wider text-[#2C2B28]">
+                  Bails on Fire
+                </span>{" "}
+                – Just an algorithm pretending it has a sense of humour. Results
+                may vary
+              </p>
+            </div>
           </div>
 
-          {/* SIDEBAR (RIGHT) */}
-          <div className="lg:col-span-4 space-y-12">
+          {/* RIGHT COLUMN – Recent Victims */}
+          <div className="lg:col-span-4 space-y-8">
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
+              transition={{ delay: 0.2 }}
             >
-              <h3 className="text-lg font-black uppercase border-b-2 border-slate-900 pb-2 mb-6 flex items-center justify-between">
-                Recent Victims
-                <TrendingDown size={18} className="text-rose-600" />
-              </h3>
+              <div className="flex items-center justify-between border-b-2 border-[#2C2B28] pb-3 mb-6">
+                <h3 className="text-base sm:text-lg font-mono font-bold uppercase tracking-[0.2em] text-[#2C2B28]">
+                  RECENT VICTIMS
+                </h3>
+                <TrendingDown size={20} className="text-[#9B2C2C]" />
+              </div>
 
               <div className="space-y-8">
-                {trendingScandals.map((item) => (
+                {trendingScandals.map((item, idx) => (
                   <Link
                     key={item.id}
                     href={`/match/${item.externalId}`}
-                    className="group block border-b border-slate-200 pb-6 last:border-0"
+                    className="group block border-b border-[#2C2B28]/10 pb-6 last:border-0"
                   >
-                    <span className="text-[0.6rem] font-black text-rose-600 uppercase mb-1 block tracking-widest">
-                      {getTeamShortName(item.homeTeam)} vs{" "}
-                      {getTeamShortName(item.awayTeam)}
-                    </span>
-                    <h4 className="text-xl font-serif group-hover:text-rose-600 transition-colors leading-[1.2] uppercase tracking-tight">
-                      {item.summaries[0]?.headline || "ANOTHER DISASTERCLASS"}
-                    </h4>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="text-[0.55rem] font-black uppercase text-slate-400">
-                        Analysis Complete
+                    <div className="flex items-start gap-4">
+                      <span className="text-base sm:text-lg font-mono font-bold text-[#9B2C2C]">
+                        {(idx + 1).toString().padStart(2, "0")}
                       </span>
-                      <span className="w-1 h-1 bg-slate-300 rounded-full" />
-                      <span className="text-[0.55rem] font-black uppercase text-rose-500">
-                        View Roast
-                      </span>
+                      <div className="flex-1">
+                        <div className="text-xs sm:text-sm font-mono font-bold uppercase tracking-wider text-[#6B5E4A]">
+                          {getTeamShortName(item.homeTeam)} vs{" "}
+                          {getTeamShortName(item.awayTeam)}
+                        </div>
+                        <h4 className="font-serif text-xl sm:text-2xl font-bold leading-tight text-[#2C2B28] group-hover:text-[#5A3A2A] transition-colors mt-1">
+                          {item.summaries[0]?.headline || "THE COLLAPSE"}
+                        </h4>
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="text-xs sm:text-sm font-mono uppercase text-[#6B5E4A]">
+                            Roast ready
+                          </span>
+                          <span className="w-1.5 h-1.5 bg-[#9B2C2C] rounded-full" />
+                          <span className="text-xs sm:text-sm font-mono uppercase text-[#9B2C2C]">
+                            Read →
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </Link>
                 ))}
                 {trendingScandals.length === 0 && (
-                  <p className="text-sm font-serif italic text-slate-400">
-                    The field is currently quiet. Too quiet. A collapse is
-                    imminent.
+                  <p className="text-base sm:text-lg font-serif italic text-[#6B5E4A]">
+                    No victims yet. The press is warming up.
                   </p>
                 )}
               </div>
@@ -235,6 +238,20 @@ const NewspaperHero = ({ data }: NewspaperHeroProps) => {
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes infinite-scroll {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-50%);
+          }
+        }
+        .animate-infinite-scroll {
+          animation: infinite-scroll 25s linear infinite;
+        }
+      `}</style>
     </section>
   );
 };
