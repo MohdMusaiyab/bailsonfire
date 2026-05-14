@@ -10,7 +10,7 @@ export default async function SeasonalMatchesLayout({ children }: LayoutProps) {
   const seasons = await getAvailableSeasons();
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-[#FCFBF7]">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-[#F9F6EF]">
       {/* Sidebar for Season Switching */}
       <SeasonalSidebar availableSeasons={seasons} />
       

@@ -29,9 +29,9 @@ function TeamTag({ name }: { name: string }) {
   const fullName = normalizeTeamName(name);
   const color = teamColor(fullName);
   return (
-    <span className="inline-flex items-center gap-2 text-[0.85rem] font-black tracking-tight text-[#1A1A1A]">
+    <span className="inline-flex items-center gap-2 text-[0.85rem] font-black font-serif uppercase tracking-tight text-[#2C2B28]">
       <span
-        className="shrink-0 inline-block w-1.5 h-1.5 rounded-full"
+        className="shrink-0 inline-block w-2 h-2 border border-[#2C2B28]"
         style={{ background: color }}
         aria-hidden="true"
       />
@@ -76,31 +76,32 @@ export function MatchCard({
     >
       <Link
         href={isHistorical ? "#" : `/match/${match.externalId}`}
-        className={`flex flex-col flex-1 p-6 bg-white border border-[#1A1A1A]/[0.06] rounded-2xl shadow-sm transition-all duration-300 ease-out ${
+        className={`flex flex-col flex-1 p-6 bg-[#F9F6EF] border-2 border-[#2C2B28] shadow-[5px_5px_0_0_rgba(0,0,0,0.2)] transition-all duration-300 ease-out ${
           isHistorical
             ? "cursor-default"
-            : "group-hover:-translate-y-1.5 group-hover:shadow-md cursor-pointer"
-        } no-underline overflow-hidden relative`}
+            : "hover:-translate-y-[2px] hover:-translate-x-[2px] hover:shadow-[7px_7px_0_0_rgba(0,0,0,0.2)] cursor-pointer"
+        } no-underline relative`}
       >
+        <div className="absolute inset-0 pointer-events-none opacity-20 bg-[url('https://www.transparenttextures.com/patterns/old-paper.png')] mix-blend-multiply" aria-hidden="true" />
         {/* ─── Blur Overlay for Historical Seasons ─── */}
         {isHistorical && (
-          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 bg-[#FCFBF7]/40 backdrop-blur-[3px]">
-            <div className="bg-[#1A1A1A] text-[#FCFBF7] px-4 py-2 rounded-full text-[0.6rem] font-black uppercase tracking-[0.2em] shadow-xl">
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 bg-[#F9F6EF]/80 backdrop-blur-[2px]">
+            <div className="bg-[#9B2C2C] text-[#F9F6EF] px-4 py-2 border-2 border-[#2C2B28] text-[0.65rem] font-mono font-bold uppercase tracking-[0.2em] shadow-[4px_4px_0_0_rgba(0,0,0,0.3)]">
               Roasts Generating...
             </div>
-            <p className="mt-3 text-[0.65rem] font-bold text-[#1A1A1A]/40 uppercase tracking-widest text-center">
+            <p className="mt-4 text-[0.65rem] font-bold font-mono text-[#2C2B28] uppercase tracking-widest text-center bg-[#F9F6EF] px-2 border border-[#2C2B28]">
               Available soon for {matchYear}
             </p>
           </div>
         )}
 
         {/* ─── HEADER (Teams + Date) ─── */}
-        <header className="mb-4 h-[100px] flex flex-col justify-between shrink-0">
+        <header className="mb-4 h-[100px] flex flex-col justify-between shrink-0 relative z-10">
           <div className="flex flex-col gap-2">
             <TeamTag name={match.homeTeam} />
             <div className="flex items-center gap-2 pl-4">
-              <div className="w-4 h-px bg-[#1A1A1A]/10" />
-              <span className="text-[0.55rem] font-black tracking-[0.2em] uppercase text-[#1A1A1A]/30">
+              <div className="w-4 h-px bg-[#2C2B28]" />
+              <span className="text-[0.55rem] font-mono font-bold tracking-[0.2em] uppercase text-[#6B5E4A]">
                 vs
               </span>
             </div>
@@ -108,22 +109,22 @@ export function MatchCard({
           </div>
 
           <time
-            className="block mt-4 text-[0.65rem] font-bold tracking-[0.18em] uppercase text-[#1A1A1A]/35"
+            className="block mt-4 text-[0.65rem] font-mono font-bold tracking-[0.18em] uppercase text-[#6B5E4A]"
             dateTime={match.matchDate.toISOString()}
           >
             {dateLabel}
           </time>
         </header>
 
-        <div className="mb-4 h-px bg-gradient-to-r from-transparent via-[#1A1A1A]/8 to-transparent shrink-0" />
+        <div className="mb-4 border-b-2 border-dashed border-[#2C2B28] shrink-0 relative z-10" />
 
         {/* ─── SCORE + VENUE + WINNER ─── */}
-        <div className="flex flex-col gap-2.5 mb-5 h-[90px] shrink-0">
-          <p className="text-[0.92rem] font-black tracking-tight leading-snug text-[#1A1A1A] line-clamp-2 uppercase">
+        <div className="flex flex-col gap-2.5 mb-5 h-[90px] shrink-0 relative z-10">
+          <p className="text-[0.95rem] font-black font-serif tracking-tight leading-snug text-[#2C2B28] line-clamp-2 uppercase">
             {cleanScoreSummary}
           </p>
 
-          <p className="flex items-center gap-1.5 text-[0.68rem] font-semibold text-[#1A1A1A]/40 leading-relaxed shrink-0">
+          <p className="flex items-center gap-1.5 text-[0.68rem] font-mono font-bold text-[#6B5E4A] leading-relaxed shrink-0 uppercase tracking-widest">
             <svg
               className="w-3 h-3 shrink-0"
               fill="none"
@@ -147,46 +148,45 @@ export function MatchCard({
             <span className="truncate">{match.venue}</span>
           </p>
 
-          <div className="h-5 shrink-0">
+          <div className="h-5 shrink-0 mt-1">
             {match.winner && (
-              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-[0.6rem] font-black tracking-wide uppercase">
-                🏆 {normalizeTeamName(match.winner)}
+              <div className="inline-flex items-center gap-1.5 px-1.5 py-0.5 bg-[#2C2B28] text-[#F9F6EF] text-[0.55rem] font-mono font-bold tracking-widest uppercase">
+                WINNER: {normalizeTeamName(match.winner)}
               </div>
             )}
           </div>
         </div>
 
         {/* ─── ROAST TEASER ─── */}
-        <div className="flex-1 mb-6 h-[72px] shrink-0 overflow-hidden">
+        <div className="flex-1 mb-6 h-[72px] shrink-0 overflow-hidden relative z-10">
           {roastTeaser ? (
-            <blockquote className="relative pl-3 border-l-2 border-[#1A1A1A]/10 h-full">
-              <p className="text-[0.78rem] leading-relaxed text-[#1A1A1A]/55 italic m-0 line-clamp-3">
+            <blockquote className="relative pl-3 border-l-4 border-[#9B2C2C] h-full">
+              <p className="text-[0.8rem] font-serif font-medium leading-relaxed text-[#3A3126] m-0 line-clamp-3">
                 {roastTeaser}
               </p>
             </blockquote>
           ) : (
-            <div className="flex flex-col justify-center h-full">
-              <p className="text-[0.65rem] font-black text-[#1A1A1A]/15 uppercase tracking-[0.25em]">
-                Roast In Progress
+            <div className="flex flex-col justify-center h-full border-l-4 border-[#2C2B28] pl-3">
+              <p className="text-[0.65rem] font-mono font-bold text-[#6B5E4A] uppercase tracking-[0.25em]">
+                [Awaiting Publisher]
               </p>
-              <div className="mt-2 w-8 h-0.5 bg-[#1A1A1A]/5" />
             </div>
           )}
         </div>
 
         {/* ─── FOOTER ─── */}
-        <footer className="flex items-center justify-between pt-4 border-t border-[#1A1A1A]/5 shrink-0">
+        <footer className="flex items-center justify-between pt-4 border-t-2 border-[#2C2B28] shrink-0 relative z-10">
           <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-1 text-[0.68rem] font-semibold text-[#1A1A1A]/35">
+            <span className="inline-flex items-center gap-1 text-[0.7rem] font-mono font-bold text-[#6B5E4A]">
               🔥 {match.reactionsCount}
             </span>
-            <span className="inline-flex items-center gap-1 text-[0.68rem] font-semibold text-[#1A1A1A]/35">
+            <span className="inline-flex items-center gap-1 text-[0.7rem] font-mono font-bold text-[#6B5E4A]">
               💬 {match.commentsCount}
             </span>
           </div>
 
-          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[0.7rem] font-black tracking-wide uppercase text-[#1A1A1A] border border-[#1A1A1A]/12 rounded-lg group-hover:bg-[#1A1A1A] group-hover:text-[#FCFBF7] transition-all">
-            {isHistorical ? "Locked" : "Read"}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[0.65rem] font-mono font-bold tracking-widest uppercase text-[#2C2B28] bg-[#F9F6EF] border-2 border-[#2C2B28] shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] group-hover:shadow-none group-hover:translate-x-[2px] group-hover:translate-y-[2px] group-hover:bg-[#2C2B28] group-hover:text-[#F9F6EF] transition-all">
+            {isHistorical ? "Archived" : "Read"}
           </div>
         </footer>
       </Link>

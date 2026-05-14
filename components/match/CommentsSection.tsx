@@ -105,88 +105,93 @@ export function CommentsSection({ matchId, initialPage, currentUserId, currentUs
     <div className="mt-12">
       {/* Section header */}
       <div className="flex items-baseline gap-4 mb-8">
-        <h2 className="text-xl font-black tracking-tight text-[#1A1A1A]">
-          Comments
+        <h2 className="text-xl font-black font-serif uppercase tracking-tight text-[#2C2B28]">
+          Letters to the Editor
         </h2>
-        <span className="text-[0.72rem] font-bold text-[#1A1A1A]/30 uppercase tracking-widest">
-          {comments.length} shown
+        <span className="text-[0.65rem] font-mono font-bold text-[#6B5E4A] uppercase tracking-widest">
+          {comments.length} responses
         </span>
-        <div className="flex-1 h-px bg-[#1A1A1A]/5 hidden sm:block" />
+        <div className="flex-1 border-b-2 border-dashed border-[#2C2B28]/20 hidden sm:block" />
       </div>
 
       {/* ── Comment Form ─────────────────────────────────────────────── */}
-      <div className="mb-10 p-6 bg-white border border-[#1A1A1A]/6 rounded-2xl shadow-sm">
-        <textarea
-          value={commentText}
-          onChange={(e) => {
-            setCommentText(e.target.value);
-            setCharCount(e.target.value.length);
-            setFormError(null);
-          }}
-          placeholder={
-            !currentUserId
-              ? 'Read the roast, have a thought? Sign in to share it.'
-              : !isVerified
-              ? 'Please verify your email to share your take on this roast…'
-              : 'Share your take on this roast…'
-          }
-          maxLength={500}
-          rows={3}
-          disabled={isPosting || (!!currentUserId && !isVerified)}
-          className="w-full resize-none bg-transparent text-sm text-[#1A1A1A] placeholder:text-[#1A1A1A]/30 focus:outline-none leading-relaxed"
-        />
+      <div className="mb-10 p-6 bg-[#F9F6EF] border-2 border-[#2C2B28] shadow-[5px_5px_0_0_rgba(0,0,0,0.2)] relative">
+        <div className="absolute inset-0 pointer-events-none opacity-20 bg-[url('https://www.transparenttextures.com/patterns/old-paper.png')] mix-blend-multiply" aria-hidden="true" />
+        <div className="relative z-10">
+          <textarea
+            value={commentText}
+            onChange={(e) => {
+              setCommentText(e.target.value);
+              setCharCount(e.target.value.length);
+              setFormError(null);
+            }}
+            placeholder={
+              !currentUserId
+                ? 'Submit a letter to the editor. Sign in to write.'
+                : !isVerified
+                ? 'Please verify your email to submit a letter…'
+                : 'Write your response here…'
+            }
+            maxLength={500}
+            rows={3}
+            disabled={isPosting || (!!currentUserId && !isVerified)}
+            className="w-full resize-none bg-transparent text-sm font-serif text-[#3A3126] placeholder:text-[#6B5E4A]/50 focus:outline-none leading-relaxed"
+          />
 
-        <div className="flex items-center justify-between pt-4 border-t border-[#1A1A1A]/5 mt-3">
-          {/* char counter */}
-          <span
-            className={`text-[0.7rem] font-semibold tabular-nums ${
-              charCount > 450 ? 'text-amber-500' : 'text-[#1A1A1A]/25'
-            }`}
-          >
-            {charCount}/500
-          </span>
-
-          {/* CTA — differs by auth state */}
-          {!currentUserId ? (
-            <Link
-              href="/auth/sign-in"
-              className="px-5 py-2 text-[0.75rem] font-black uppercase tracking-wider text-[#1A1A1A] bg-white border border-[#1A1A1A]/12 rounded-lg transition-all hover:bg-[#1A1A1A] hover:text-[#FCFBF7] hover:border-[#1A1A1A]"
+          <div className="flex items-center justify-between pt-4 border-t-2 border-dashed border-[#2C2B28]/20 mt-3">
+            {/* char counter */}
+            <span
+              className={`text-[0.7rem] font-mono font-bold tabular-nums ${
+                charCount > 450 ? 'text-[#9B2C2C]' : 'text-[#6B5E4A]'
+              }`}
             >
-              Sign in to comment →
-            </Link>
-          ) : !isVerified ? (
-            <div className="flex flex-col items-end gap-1">
-              <span className="text-[0.6rem] font-black uppercase tracking-widest text-amber-600 mb-1">
-                Verification Required
-              </span>
+              {charCount}/500
+            </span>
+
+            {/* CTA — differs by auth state */}
+            {!currentUserId ? (
               <Link
-                href="/auth/verify-email"
-                className="px-5 py-2 text-[0.75rem] font-black uppercase tracking-wider text-[#1A1A1A] bg-amber-50 border border-amber-200 rounded-lg transition-all hover:bg-amber-100"
+                href="/auth/sign-in"
+                className="px-4 py-2 text-[0.65rem] font-mono font-bold uppercase tracking-widest text-[#2C2B28] bg-[#F9F6EF] border-2 border-[#2C2B28] shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] transition-all hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
               >
-                Verify Email →
+                Sign In To Write
               </Link>
-            </div>
-          ) : (
-            <button
-              onClick={handlePost}
-              disabled={isPosting || commentText.trim().length === 0}
-              className="px-5 py-2 text-[0.75rem] font-black uppercase tracking-wider text-[#FCFBF7] bg-[#1A1A1A] rounded-lg transition-all hover:opacity-80 disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              {isPosting ? 'Posting…' : 'Post Comment'}
-            </button>
+            ) : !isVerified ? (
+              <div className="flex flex-col items-end gap-1">
+                <span className="text-[0.6rem] font-mono font-bold uppercase tracking-widest text-[#9B2C2C] mb-1">
+                  Verification Required
+                </span>
+                <Link
+                  href="/auth/verify-email"
+                  className="px-4 py-2 text-[0.65rem] font-mono font-bold uppercase tracking-widest text-[#2C2B28] bg-[#F9F6EF] border-2 border-[#2C2B28] shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] transition-all hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
+                >
+                  Verify Email
+                </Link>
+              </div>
+            ) : (
+              <button
+                onClick={handlePost}
+                disabled={isPosting || commentText.trim().length === 0}
+                className="px-4 py-2 text-[0.65rem] font-mono font-bold uppercase tracking-widest text-[#F9F6EF] bg-[#2C2B28] border-2 border-[#2C2B28] transition-all disabled:opacity-50 disabled:cursor-not-allowed enabled:shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] enabled:hover:shadow-none enabled:hover:translate-x-[2px] enabled:hover:translate-y-[2px]"
+              >
+                {isPosting ? 'Submitting…' : 'Submit Letter'}
+              </button>
+            )}
+          </div>
+
+          {formError && (
+            <p className="mt-2 text-[0.65rem] font-mono font-bold uppercase tracking-widest text-[#9B2C2C]">{formError}</p>
           )}
         </div>
-
-        {formError && (
-          <p className="mt-2 text-xs font-semibold text-red-500">{formError}</p>
-        )}
       </div>
 
       {/* ── Comment List ─────────────────────────────────────────────── */}
       {comments.length === 0 ? (
-        <p className="text-center text-sm text-[#1A1A1A]/30 font-semibold py-12 uppercase tracking-widest">
-          No comments yet. Be the first.
-        </p>
+        <div className="py-12 text-center border-y-2 border-dashed border-[#2C2B28]/20">
+          <p className="text-sm font-mono font-bold text-[#6B5E4A] uppercase tracking-widest">
+            Inbox empty. Send a letter.
+          </p>
+        </div>
       ) : (
         <ul className="flex flex-col gap-4 list-none p-0 m-0">
           {comments.map((comment) => (
@@ -207,9 +212,9 @@ export function CommentsSection({ matchId, initialPage, currentUserId, currentUs
           <button
             onClick={loadMore}
             disabled={isLoadingMore}
-            className="px-6 py-2.5 text-[0.75rem] font-black uppercase tracking-wider text-[#1A1A1A] border border-[#1A1A1A]/12 rounded-lg transition-all hover:bg-[#1A1A1A] hover:text-[#FCFBF7] hover:border-[#1A1A1A] disabled:opacity-40"
+            className="px-6 py-2.5 text-[0.65rem] font-mono font-bold uppercase tracking-widest text-[#2C2B28] bg-[#F9F6EF] border-2 border-[#2C2B28] transition-all disabled:opacity-40 enabled:shadow-[3px_3px_0_0_rgba(0,0,0,0.2)] enabled:hover:shadow-none enabled:hover:translate-x-[2px] enabled:hover:translate-y-[2px]"
           >
-            {isLoadingMore ? 'Loading…' : 'Load More Comments'}
+            {isLoadingMore ? 'Printing…' : 'Load More Letters'}
           </button>
         </div>
       )}
@@ -234,30 +239,32 @@ function CommentRow({
   const initials = (comment.user.name ?? 'A').charAt(0).toUpperCase();
 
   return (
-    <li className={`flex gap-4 p-5 bg-white border border-[#1A1A1A]/5 rounded-xl transition-opacity ${isDeleting ? 'opacity-40' : ''}`}>
+    <li className={`flex gap-4 p-5 bg-[#F9F6EF] border-2 border-[#2C2B28] shadow-[3px_3px_0_0_rgba(0,0,0,0.1)] transition-opacity relative ${isDeleting ? 'opacity-40' : ''}`}>
+      <div className="absolute inset-0 pointer-events-none opacity-20 bg-[url('https://www.transparenttextures.com/patterns/old-paper.png')] mix-blend-multiply" aria-hidden="true" />
+      
       {/* Avatar */}
-      <div className="shrink-0 w-9 h-9 rounded-full bg-[#1A1A1A]/8 flex items-center justify-center text-xs font-black text-[#1A1A1A]/50 select-none">
+      <div className="shrink-0 w-8 h-8 border-2 border-[#2C2B28] flex items-center justify-center text-xs font-mono font-bold text-[#2C2B28] bg-[#F9F6EF] select-none relative z-10">
         {initials}
       </div>
 
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 relative z-10">
         {/* Name + time row */}
-        <div className="flex items-center gap-2 mb-1.5">
-          <span className="text-[0.8rem] font-black text-[#1A1A1A]">
+        <div className="flex items-center gap-2 mb-2 border-b-2 border-dashed border-[#2C2B28]/10 pb-1">
+          <span className="text-[0.75rem] font-mono font-bold uppercase tracking-widest text-[#2C2B28]">
             {comment.user.name ?? 'Anonymous'}
           </span>
           {isOwn && (
-            <span className="text-[0.6rem] font-black uppercase tracking-wider text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">
-              You
+            <span className="text-[0.55rem] font-mono font-bold uppercase tracking-widest text-[#9B2C2C] border border-[#9B2C2C] px-1.5 py-0.5">
+              AUTHOR
             </span>
           )}
-          <span className="text-[0.7rem] text-[#1A1A1A]/30 font-medium ml-auto">
+          <span className="text-[0.65rem] font-mono font-bold text-[#6B5E4A] ml-auto uppercase tracking-widest">
             {timeAgo}
           </span>
         </div>
 
         {/* Content */}
-        <p className="text-sm text-[#1A1A1A]/70 leading-relaxed m-0 break-words">
+        <p className="text-sm font-serif text-[#3A3126] leading-relaxed m-0 break-words">
           {comment.content}
         </p>
       </div>
@@ -267,7 +274,7 @@ function CommentRow({
         <button
           onClick={onDelete}
           aria-label="Delete comment"
-          className="shrink-0 self-start mt-0.5 text-[#1A1A1A]/20 hover:text-red-400 transition-colors"
+          className="shrink-0 self-start mt-0.5 text-[#2C2B28] hover:text-[#9B2C2C] transition-colors relative z-10"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

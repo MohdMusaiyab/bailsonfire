@@ -58,9 +58,9 @@ export function InfiniteMatchGrid({ initialPage, year, selectedTeams }: Props) {
   return (
     <div className="flex flex-col gap-12 w-full">
       {matches.length === 0 ? (
-        <div className="py-32 text-center">
-          <p className="text-sm font-bold text-[#1A1A1A]/30 uppercase tracking-widest">
-            No matches found for this selection.
+        <div className="py-32 text-center border-y-2 border-dashed border-[#2C2B28]">
+          <p className="text-sm font-mono font-bold text-[#6B5E4A] uppercase tracking-widest">
+            No clippings found for this selection.
           </p>
         </div>
       ) : (
@@ -78,11 +78,13 @@ export function InfiniteMatchGrid({ initialPage, year, selectedTeams }: Props) {
           <button
             onClick={loadMore}
             disabled={isPending}
-            className={`px-8 py-3 rounded-xl text-[0.7rem] font-black uppercase tracking-[0.2em] border border-[#1A1A1A]/10 bg-white text-[#1A1A1A] transition-all hover:border-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-[#FCFBF7] ${
-              isPending ? "opacity-50 cursor-not-allowed" : ""
+            className={`px-8 py-3 text-[0.7rem] font-mono font-bold uppercase tracking-[0.2em] border-2 border-[#2C2B28] transition-all ${
+              isPending 
+                ? "bg-[#2C2B28] text-[#F9F6EF] opacity-50 cursor-not-allowed translate-x-[3px] translate-y-[3px]" 
+                : "bg-[#F9F6EF] text-[#2C2B28] shadow-[5px_5px_0_0_rgba(0,0,0,0.2)] hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px] hover:bg-[#2C2B28] hover:text-[#F9F6EF]"
             }`}
           >
-            {isPending ? "Loading..." : "Load More Roasts"}
+            {isPending ? "Printing..." : "Load More Roasts"}
           </button>
         </div>
       )}

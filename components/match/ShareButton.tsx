@@ -44,7 +44,7 @@ export function ShareButton({ title, text, url }: Props) {
         onClick={handleShare}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        className="inline-flex items-center gap-2.5 px-5 py-2.5 bg-[#1A1A1A] text-[#FCFBF7] rounded-xl text-sm font-bold transition-all hover:bg-[#1A1A1A]/90 shadow-sm"
+        className="inline-flex items-center gap-2.5 px-5 py-2.5 bg-[#2C2B28] text-[#F9F6EF] border-2 border-[#2C2B28] text-[0.75rem] font-mono font-bold uppercase tracking-widest shadow-[3px_3px_0_0_rgba(0,0,0,0.3)] transition-all hover:shadow-[1px_1px_0_0_rgba(0,0,0,0.3)] hover:translate-x-[2px] hover:translate-y-[2px]"
       >
         <svg
           className="w-4 h-4"
@@ -68,7 +68,7 @@ export function ShareButton({ title, text, url }: Props) {
             initial={{ opacity: 0, y: 10, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.9 }}
-            className="absolute left-1/2 -translate-x-1/2 -top-12 px-3 py-1.5 bg-emerald-600 text-white text-[0.7rem] font-bold rounded-lg shadow-lg whitespace-nowrap z-50"
+            className="absolute left-1/2 -translate-x-1/2 -top-12 px-3 py-1.5 bg-[#F9F6EF] text-[#2C2B28] border-2 border-[#2C2B28] text-[0.65rem] font-mono font-bold uppercase tracking-widest shadow-[4px_4px_0_0_rgba(0,0,0,0.3)] whitespace-nowrap z-50"
           >
             Link Copied!
           </motion.div>

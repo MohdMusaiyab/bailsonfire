@@ -85,22 +85,22 @@ export function ReactionButton({
 
     return (
       <div className="relative group/reaction">
-        <div className="flex items-center gap-1.5 p-1.5 bg-white border border-[#1A1A1A]/6 rounded-2xl shadow-sm">
+        <div className="flex items-center gap-1.5 p-1.5 bg-[#F9F6EF] border-2 border-[#2C2B28] shadow-[3px_3px_0_0_rgba(0,0,0,0.2)]">
           {REACTIONS.map((r) => (
             <button
               key={r.type}
               disabled
-              className="w-9 h-9 flex items-center justify-center rounded-xl text-lg grayscale opacity-30 cursor-not-allowed"
+              className="w-9 h-9 flex items-center justify-center text-lg grayscale opacity-30 cursor-not-allowed border-2 border-transparent"
             >
               {r.emoji}
             </button>
           ))}
-          <div className="h-4 w-px bg-[#1A1A1A]/10 mx-1" />
-          <span className="pr-3 pl-1 text-[0.75rem] font-black text-[#1A1A1A]/30">
+          <div className="h-5 w-px bg-[#2C2B28] mx-1" />
+          <span className="pr-3 pl-1 text-[0.8rem] font-mono font-bold text-[#6B5E4A]">
             {count}
           </span>
         </div>
-        <span className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-[#1A1A1A] text-[#FCFBF7] text-[0.68rem] font-semibold px-3 py-1.5 opacity-0 group-hover/reaction:opacity-100 transition-opacity duration-150">
+        <span className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap bg-[#2C2B28] text-[#F9F6EF] text-[0.65rem] font-mono font-bold uppercase tracking-widest px-3 py-1.5 opacity-0 group-hover/reaction:opacity-100 transition-opacity duration-150 shadow-[4px_4px_0_0_rgba(0,0,0,0.3)]">
           {message}
         </span>
       </div>
@@ -108,7 +108,7 @@ export function ReactionButton({
   }
 
   return (
-    <div className="flex items-center gap-1.5 p-1.5 bg-white border border-[#1A1A1A]/10 rounded-2xl shadow-sm">
+    <div className="flex items-center gap-1.5 p-1.5 bg-[#F9F6EF] border-2 border-[#2C2B28] shadow-[3px_3px_0_0_rgba(0,0,0,0.2)]">
       {REACTIONS.map((r) => {
         const isActive = userReaction === r.type;
         return (
@@ -118,28 +118,25 @@ export function ReactionButton({
             disabled={isPending}
             title={r.label}
             className={`
-              relative w-10 h-10 flex items-center justify-center rounded-xl text-xl 
-              transition-all duration-200 hover:scale-110 active:scale-95
+              relative w-10 h-10 flex items-center justify-center text-xl border-2
+              transition-all duration-100 hover:scale-105 active:scale-95
               ${
                 isActive
-                  ? "bg-[#1A1A1A]/5 ring-2 ring-[#1A1A1A]/10"
-                  : "hover:bg-[#1A1A1A]/4"
+                  ? "border-[#2C2B28] bg-[#2C2B28]/10 shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.2)] translate-y-px translate-x-px"
+                  : "border-transparent hover:border-[#2C2B28]"
               }
               ${!isActive && userReaction !== null ? "grayscale-[0.5] opacity-60" : ""}
               ${isPending ? "cursor-wait" : ""}
             `}
           >
             {r.emoji}
-            {isActive && (
-              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#1A1A1A]" />
-            )}
           </button>
         );
       })}
 
-      <div className="h-5 w-px bg-[#1A1A1A]/10 mx-1.5" />
+      <div className="h-6 w-px bg-[#2C2B28] mx-1.5" />
 
-      <span className="pr-3 pl-1 text-[0.8rem] font-black text-[#1A1A1A]/80 tabular-nums">
+      <span className="pr-3 pl-1 text-[0.8rem] font-mono font-bold text-[#2C2B28] tabular-nums">
         {count}
       </span>
     </div>

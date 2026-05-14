@@ -13,9 +13,10 @@ export function SeasonalSidebar({ availableSeasons }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className="flex-shrink-0 bg-[#FCFBF7] w-full border-b border-[#1A1A1A]/5 lg:w-64 lg:border-r lg:border-b-0 lg:overflow-y-auto lg:sticky lg:top-0 lg:h-screen z-30">
-      <div className="p-4 lg:p-8 flex flex-col sm:flex-row lg:flex-col gap-3 sm:items-center lg:items-start">
-        <h3 className="text-[0.68rem] font-black tracking-[0.22em] uppercase text-[#1A1A1A]/30 lg:mb-8 whitespace-nowrap">
+    <aside className="flex-shrink-0 bg-[#F9F6EF] w-full border-b-2 border-[#2C2B28] lg:w-64 lg:border-r-2 lg:border-b-0 lg:overflow-y-auto lg:sticky lg:top-0 lg:h-screen z-30 relative">
+      <div className="absolute inset-0 pointer-events-none opacity-20 bg-[url('https://www.transparenttextures.com/patterns/old-paper.png')] mix-blend-multiply" aria-hidden="true" />
+      <div className="p-4 lg:p-8 flex flex-col sm:flex-row lg:flex-col gap-3 sm:items-center lg:items-start relative z-10">
+        <h3 className="text-[0.68rem] font-mono font-bold tracking-[0.22em] uppercase text-[#6B5E4A] lg:mb-8 whitespace-nowrap">
           IPL Seasons
         </h3>
         
@@ -27,21 +28,21 @@ export function SeasonalSidebar({ availableSeasons }: SidebarProps) {
               <Link
                 key={year}
                 href={`/matches/${year}`}
-                className={`group relative py-2 px-4 lg:py-3 lg:px-4 rounded-xl text-sm font-bold tracking-tight transition-all flex-shrink-0 ${
+                className={`group relative py-2 px-4 lg:py-3 lg:px-4 border-2 text-[0.8rem] font-mono font-bold uppercase tracking-widest transition-all flex-shrink-0 ${
                   isActive 
-                    ? "text-[#1A1A1A] bg-white border border-[#1A1A1A]/5 shadow-sm" 
-                    : "text-[#1A1A1A]/40 hover:text-[#1A1A1A] hover:bg-white/40"
+                    ? "text-[#F9F6EF] bg-[#2C2B28] border-[#2C2B28] shadow-[3px_3px_0_0_rgba(0,0,0,0.3)]" 
+                    : "text-[#2C2B28] bg-transparent border-transparent hover:border-[#2C2B28] hover:bg-[#F9F6EF]"
                 }`}
               >
                 {isActive && (
                   <motion.div
                     layoutId="sidebar-active"
-                    className="absolute inset-0 bg-white rounded-xl shadow-sm border border-[#1A1A1A]/5 -z-10"
+                    className="absolute inset-0 bg-[#2C2B28] -z-10"
                   />
                 )}
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center justify-between gap-3 relative z-10">
                   <span>Season {year}</span>
-                  {isActive && <span className="w-1.5 h-1.5 rounded-full bg-[#1A1A1A]" />}
+                  {isActive && <span className="w-2 h-2 bg-[#F9F6EF] border border-[#F9F6EF]" />}
                 </div>
               </Link>
             );
@@ -50,7 +51,7 @@ export function SeasonalSidebar({ availableSeasons }: SidebarProps) {
       </div>
       
       {/* Decorative vertical line (architectural) - Desktop only */}
-      <div className="absolute right-[10%] top-0 bottom-0 w-px bg-[#1A1A1A]/4 hidden lg:block" aria-hidden="true" />
+      <div className="absolute right-[10%] top-0 bottom-0 w-0.5 bg-[#2C2B28]/20 hidden lg:block" aria-hidden="true" />
     </aside>
   );
 }

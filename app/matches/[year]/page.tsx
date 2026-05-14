@@ -42,12 +42,13 @@ export default async function SeasonalMatchesPage({ params, searchParams }: Page
   });
 
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col relative">
+      <div className="absolute inset-0 pointer-events-none opacity-10 bg-[url('https://www.transparenttextures.com/patterns/old-paper.png')] mix-blend-multiply" aria-hidden="true" />
       {/* ── BREADCRUMB ────────────────────────────────────────────── */}
-      <nav className="px-8 pt-10" aria-label="Breadcrumb">
+      <nav className="px-6 md:px-10 pt-10 relative z-10" aria-label="Breadcrumb">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-[0.72rem] font-bold uppercase tracking-widest text-[#1A1A1A]/35 hover:text-[#1A1A1A] transition-colors"
+          className="inline-flex items-center gap-1.5 text-[0.72rem] font-mono font-bold uppercase tracking-widest text-[#6B5E4A] hover:text-[#9B2C2C] transition-colors"
         >
           <svg className="w-3 h-3" fill="none" viewBox="0 0 12 12" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 6H3M5 2L1 6l4 4" />
@@ -57,22 +58,23 @@ export default async function SeasonalMatchesPage({ params, searchParams }: Page
       </nav>
 
       {/* ── HEADER ────────────────────────────────────────────────── */}
-      <header className="px-8 pt-6 pb-6 border-b border-[#1A1A1A]/5">
-        <p className="mb-2 text-[0.68rem] font-black tracking-[0.22em] uppercase text-[#1A1A1A]/25">
+      <header className="px-6 md:px-10 pt-6 pb-6 border-b-2 border-[#2C2B28] relative z-10">
+        <div className="absolute bottom-1 left-0 w-full h-px bg-[#2C2B28]" />
+        <p className="mb-2 text-[0.68rem] font-mono font-bold tracking-[0.22em] uppercase text-[#6B5E4A]">
           IPL Season {yearNum}
         </p>
-        <h1 className="text-4xl font-black tracking-tighter text-[#1A1A1A]">
+        <h1 className="text-4xl md:text-5xl font-black font-serif uppercase tracking-tighter text-[#2C2B28]">
           Explore All Roasts
         </h1>
       </header>
 
       {/* ── FILTERS ───────────────────────────────────────────────── */}
-      <Suspense fallback={<div className="h-20 bg-[#FCFBF7]" />}>
+      <Suspense fallback={<div className="h-20 bg-[#F9F6EF]" />}>
         <TeamFilter />
       </Suspense>
 
       {/* ── MATCH FEED ────────────────────────────────────────────── */}
-      <div className="p-8 pb-20">
+      <div className="p-6 md:p-10 pb-20 relative z-10">
         <InfiniteMatchGrid 
           initialPage={initialPage} 
           year={yearNum} 
@@ -81,7 +83,7 @@ export default async function SeasonalMatchesPage({ params, searchParams }: Page
       </div>
       
       {/* Background architectural vertical lines (mirroring other pages) */}
-      <div className="fixed right-[5%] top-0 bottom-0 w-px bg-[#1A1A1A]/4 pointer-events-none -z-10" aria-hidden="true" />
+      <div className="fixed right-[5%] top-0 bottom-0 w-0.5 bg-[#2C2B28] pointer-events-none -z-10" aria-hidden="true" />
     </div>
   );
 }

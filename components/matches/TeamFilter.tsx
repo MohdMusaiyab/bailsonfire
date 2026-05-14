@@ -43,9 +43,10 @@ export function TeamFilter() {
   }
 
   return (
-    <div className="py-4 lg:py-6 border-b border-[#1A1A1A]/5 bg-[#FCFBF7]/80 backdrop-blur-md sticky top-0 z-20 px-4 lg:px-8">
-      <div className="flex overflow-x-auto items-center gap-2 lg:gap-3 lg:flex-wrap pb-2 lg:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        <span className="flex-shrink-0 whitespace-nowrap text-[0.6rem] font-black tracking-[0.2em] uppercase text-[#1A1A1A]/30 mr-2">
+    <div className="py-4 lg:py-6 border-b-2 border-[#2C2B28] bg-[#F9F6EF] sticky top-0 z-20 px-6 md:px-10">
+      <div className="absolute inset-0 pointer-events-none opacity-20 bg-[url('https://www.transparenttextures.com/patterns/old-paper.png')] mix-blend-multiply" aria-hidden="true" />
+      <div className="flex overflow-x-auto items-center gap-3 lg:flex-wrap pb-2 lg:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] relative z-10">
+        <span className="flex-shrink-0 whitespace-nowrap text-[0.65rem] font-mono font-bold tracking-[0.2em] uppercase text-[#6B5E4A] mr-2">
           Filter Teams:
         </span>
         
@@ -61,14 +62,14 @@ export function TeamFilter() {
             <button
               key={shortName}
               onClick={() => toggleTeam(shortName)}
-              className={`relative flex-shrink-0 whitespace-nowrap flex items-center gap-2 px-3 py-1.5 lg:gap-2.5 lg:px-3.5 lg:py-2 rounded-full text-[0.7rem] lg:text-[0.72rem] font-bold tracking-tight transition-all border ${
+              className={`relative flex-shrink-0 whitespace-nowrap flex items-center gap-2 px-3 py-1.5 lg:gap-2.5 lg:px-3.5 lg:py-2 text-[0.65rem] font-mono font-bold uppercase tracking-widest transition-all border-2 border-[#2C2B28] ${
                 isSelected 
-                  ? "bg-[#1A1A1A] text-[#FCFBF7] border-[#1A1A1A]" 
-                  : "bg-white text-[#1A1A1A]/60 border-[#1A1A1A]/10 hover:border-[#1A1A1A]/30"
+                  ? "bg-[#2C2B28] text-[#F9F6EF] shadow-[inset_3px_3px_0_0_rgba(0,0,0,0.5)] translate-x-[2px] translate-y-[2px]" 
+                  : "bg-[#F9F6EF] text-[#2C2B28] shadow-[3px_3px_0_0_rgba(0,0,0,0.2)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
               }`}
             >
               <span 
-                className="w-1.5 h-1.5 rounded-full" 
+                className="w-2 h-2 border border-[#2C2B28]" 
                 style={{ backgroundColor: color }}
               />
               {fullName}
@@ -89,7 +90,7 @@ export function TeamFilter() {
         {selectedTeams.length > 0 && (
           <button
             onClick={clearAll}
-            className="flex-shrink-0 whitespace-nowrap text-[0.6rem] lg:text-[0.65rem] font-bold uppercase tracking-widest text-[#1A1A1A]/40 hover:text-[#1A1A1A] transition-colors ml-2 lg:ml-4"
+            className="flex-shrink-0 whitespace-nowrap text-[0.65rem] font-mono font-bold uppercase tracking-widest text-[#9B2C2C] hover:text-[#5A1A1A] transition-colors ml-2 lg:ml-4 underline underline-offset-4 decoration-[#9B2C2C]"
           >
             Clear All
           </button>
