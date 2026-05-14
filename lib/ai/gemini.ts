@@ -33,7 +33,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 // Use a model with Google Search grounding support for data fetch.
 // Roast generation does not need search; use the lighter model to save tokens.
 const FETCH_MODEL = "gemini-2.0-flash";
-const ROAST_MODEL = "gemini-2.0-flash";
+const ROAST_MODEL = "gemini-2.0-flash-lite";
 
 // ---------------------------------------------------------------------------
 // Retry configuration

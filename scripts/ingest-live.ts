@@ -32,7 +32,9 @@ async function runLiveIngestion(): Promise<void> {
   const newMatches = await fetchNewIPLMatches();
 
   if (newMatches.length === 0) {
-    console.log("\n✅ No new matches found — everything is up to date. Exiting.");
+    console.log(
+      "\n✅ No new matches found — everything is up to date. Exiting.",
+    );
     return;
   }
 
@@ -44,32 +46,32 @@ async function runLiveIngestion(): Promise<void> {
     const externalId = data.externalId;
     console.log(`\n📄 Ingesting: ${data.homeTeam} vs ${data.awayTeam}`);
     console.log(`   ID: ${externalId}`);
-    
+
     try {
       const saved = await prisma.match.upsert({
         where: { externalId },
         create: {
           externalId,
-          homeTeam:         data.homeTeam,
-          awayTeam:         data.awayTeam,
-          scoreSummary:     data.scoreSummary,
-          venue:            data.venue,
-          winner:           data.winner   ?? null,
-          loser:            data.loser    ?? null,
-          matchDate:        new Date(data.matchDate),
-          scorecard:        data.scorecard as Prisma.InputJsonValue,
+          homeTeam: data.homeTeam,
+          awayTeam: data.awayTeam,
+          scoreSummary: data.scoreSummary,
+          venue: data.venue,
+          winner: data.winner ?? null,
+          loser: data.loser ?? null,
+          matchDate: new Date(data.matchDate),
+          scorecard: data.scorecard as Prisma.InputJsonValue,
           playerOfTheMatch: data.playerOfMatch ?? null,
-          keyMoments:       [],
+          keyMoments: [],
         },
         update: {
-          scoreSummary:     data.scoreSummary,
-          scorecard:        data.scorecard as Prisma.InputJsonValue,
-          venue:            data.venue,
+          scoreSummary: data.scoreSummary,
+          scorecard: data.scorecard as Prisma.InputJsonValue,
+          venue: data.venue,
           playerOfTheMatch: data.playerOfMatch ?? null,
         },
         include: {
           summaries: true,
-        }
+        },
       });
 
       console.log(`   ✅ SUCCESS: Match ${saved.id} upserted.`);
@@ -81,21 +83,26 @@ async function runLiveIngestion(): Promise<void> {
           // generateMatchRoast expects Extract<AIResponseMatchPayload, { matchFound: true }>
           // Our 'data' object from fetchNewIPLMatches is exactly that.
           const { headline, roast } = await generateMatchRoast(data);
-          
+
           await prisma.summary.create({
             data: {
-              matchId:  saved.id,
+              matchId: saved.id,
               headline: headline,
-              content:  roast,
-              aiModel:  "gemini-2.0-flash", // Match the model used in lib/ai/gemini.ts
-            }
+              content: roast,
+              aiModel: "gemini-2.0-flash", // Match the model used in lib/ai/gemini.ts
+            },
           });
           console.log(`   ✨ Roast saved: "${headline}"`);
         } catch (roastErr) {
-          console.error(`   ⚠️  AI Roast generation failed for ${externalId}:`, roastErr);
+          console.error(
+            `   ⚠️  AI Roast generation failed for ${externalId}:`,
+            roastErr,
+          );
         }
       } else {
-        console.log(`   ℹ️  Roast already exists for ${externalId}. Skipping generation.`);
+        console.log(
+          `   ℹ️  Roast already exists for ${externalId}. Skipping generation.`,
+        );
       }
 
       successCount++;
