@@ -32,8 +32,8 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // Use a model with Google Search grounding support for data fetch.
 // Roast generation does not need search; use the lighter model to save tokens.
-const FETCH_MODEL = "gemini-2.0-flash";
-const ROAST_MODEL = "gemini-2.0-flash-lite";
+const FETCH_MODEL = "gemini-2.5-flash";
+const ROAST_MODEL = "gemini-2.5-flash-lite";
 
 // ---------------------------------------------------------------------------
 // Retry configuration
@@ -300,6 +300,18 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Logs token usage to the console for monitoring.
+ */
+function logTokenUsage(response: GenerateContentResponse): void {
+  const meta = response.usageMetadata;
+  if (meta) {
+    console.log(
+      `[GEMINI] 📊 Token Usage: Input=${meta.promptTokenCount} | Output=${meta.candidatesTokenCount} | Total=${meta.totalTokenCount}`
+    );
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Stage 1: Fetch match data (exported)
 // ---------------------------------------------------------------------------
@@ -334,6 +346,9 @@ export async function fetchRecentMatchData(): Promise<AIResponseMatchPayload> {
           temperature: 1.0,
         },
       });
+
+      // Always log token usage
+      logTokenUsage(response);
 
       // Always log what was searched and which sources were used
       logGroundingMetadata(response);
@@ -413,13 +428,15 @@ function getEraAppropriateLore(teamShort: string, matchYear: number): string {
 export const AI_PERSONAS = [
   `The Sarcastic Neighborhood "Tau" (Unflinching Indian Relative): A bold, witty, and slightly judgmental observer who uses domestic analogies (marriages, government offices, noisy neighbors,etc) to humiliate professional failures. This persona acts like a frustrated fan who is both disappointed and entertained by the absurdity of the performance, delivering "tough love" with a smirk.`,
   `The Elite Disappointed Critic: A sophisticated, slightly arrogant analyst who uses "Aap" and "Janaab" to deliver a calm, devastating performance review. Treats failures as "Lapses in Human Intelligence" or "Technical Glitches," maintaining a facade of respect while being utterly condescending.`,
-  `The Disillusioned Desi Fan (The "Yaar-Bhai" Critic): A high-energy, relatable friend speaking like he's at a local tea stall. Oscillates between ironic "Janaab" and frustrated "Bhai," focusing on the pure shame and absurdity of the performance without using technical jargon.`
+  `The Disillusioned Desi Fan (The "Yaar-Bhai" Critic): A high-energy, relatable friend speaking like he's at a local tea stall. Oscillates between ironic "Janaab" and frustrated "Bhai," focusing on the pure shame and absurdity of the performance without using technical jargon.`,
+  `The Aggressive "Tu-Tadaak" Uncle: A loud, unfiltered, and deeply angry elder who treats every failure like a personal betrayal. He uses "Tu" and "Tera" with absolute authority, speaking as if he's grabbing the player by the collar. He doesn't sugarcoat anything; he's here to remind them that they are a "Boajh" (burden) on the soil.`
 ];
 
 export const AI_STYLES = [
   `Satirical Desi-Fusion (Hinglish Slapstick): A high-energy mix of Hindi and English characterized by hyperbolic comparisons (e.g., comparing strike rates to 2G internet or inflation). It utilizes "insult comedy" tropes—specifically the Chai-Tapri lingo—relying on rhythmic punchlines, pop-culture references, and brutal honesty to deflate egos while maintaining a comedic tempo.`,
   `Elite Corporate-Tech Sarcasm: A formal Hinglish mix (60% Eng, 40% Hin) using "Aap/Janaab" instead of "Tu/Tera." Employs high-tech, luxury, and aviation metaphors (system crashes, bad IPOs, turbulence) with dry, rhythmic punchlines in Hindi for maximum emotional impact.`,
-  `Aggressive Hinglish Satire (The "Kachoomar" Flow): A punchy 70% Hindi/30% English mix using "Domestic Humiliation" metaphors (rhetorical questions about farming, office lunch breaks). Loud, cinematic, and brutally honest, concluding with "slang-caps" like KHATAM, GAYA, TATA! to emphasize the finality of the defeat.`
+  `Aggressive Hinglish Satire (The "Kachoomar" Flow): A punchy 70% Hindi/30% English mix using "Domestic Humiliation" metaphors (rhetorical questions about farming, office lunch breaks). Loud, cinematic, and brutally honest, concluding with "slang-caps" like KHATAM, GAYA, TATA! to emphasize the finality of the defeat.`,
+  `The "Belt-Treatment" Vernacular: A raw, street-style Hinglish flow (80% Hindi) that feels like a physical verbal beating. Uses sharp, short sentences, aggressive rhetorical questions (e.g., "Khelne aaye ho ya mazak karne?"), and focuses heavily on the "Tu/Tera" informal address to strip away any professional dignity.`
 ];
 
 function buildDynamicPrompt(): string {
@@ -523,6 +540,9 @@ Return ONLY the bullet points. Do not include any introductory or conversational
       },
     });
 
+    // Log token usage
+    logTokenUsage(response);
+
     logGroundingMetadata(response);
 
     const text = response.text;
@@ -608,6 +628,9 @@ export async function generateMatchRoast(
       temperature: 0.95,
     },
   });
+
+  // Log token usage
+  logTokenUsage(response);
 
   const responseText = response.text;
   if (!responseText || responseText.trim() === "") {

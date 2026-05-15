@@ -41,39 +41,56 @@ async function runAddRoast(): Promise<void> {
 
   for (const match of matchesWithoutRoast) {
     console.log(`▶️ Generating missing roast for ${match.homeTeam} vs ${match.awayTeam} (${match.externalId})`);
-    try {
-      // Reconstruct the payload expected by generateMatchRoast without using 'any'
-      const payload: Extract<AIResponseMatchPayload, { matchFound: true }> = {
-        matchFound: true,
-        externalId: match.externalId,
-        homeTeam: match.homeTeam,
-        awayTeam: match.awayTeam,
-        homeTeamShort: getTeamShortName(match.homeTeam),
-        awayTeamShort: getTeamShortName(match.awayTeam),
-        venue: match.venue,
-        scoreSummary: match.scoreSummary,
-        playerOfMatch: match.playerOfTheMatch,
-        matchDate: match.matchDate.toISOString(),
-        scorecard: match.scorecard as MatchScorecard | undefined,
-      };
+    let attempts = 0;
+    const MAX_ATTEMPTS = 5;
+    const baseDelay = 5000; // 5 seconds
 
-      const { headline, roast } = await generateMatchRoast(payload);
+    while (attempts < MAX_ATTEMPTS) {
+      try {
+        // Reconstruct the payload expected by generateMatchRoast
+        const payload: Extract<AIResponseMatchPayload, { matchFound: true }> = {
+          matchFound: true,
+          externalId: match.externalId,
+          homeTeam: match.homeTeam,
+          awayTeam: match.awayTeam,
+          homeTeamShort: getTeamShortName(match.homeTeam),
+          awayTeamShort: getTeamShortName(match.awayTeam),
+          venue: match.venue,
+          scoreSummary: match.scoreSummary,
+          playerOfMatch: match.playerOfTheMatch,
+          matchDate: match.matchDate.toISOString(),
+          scorecard: match.scorecard as MatchScorecard | undefined,
+        };
 
-      // Save to DB immediately to avoid token loss if a subsequent one fails
-      await prisma.summary.create({
-        data: {
-          matchId: match.id,
-          headline: headline,
-          content: roast,
-          aiModel: "gemini-2.0-flash-lite", 
-        },
-      });
+        const { headline, roast } = await generateMatchRoast(payload);
 
-      console.log(`   ✨ Success! Saved: "${headline}"\n`);
-      successCount++;
-    } catch (err) {
-      console.error(`   ⚠️ Failed to generate roast for ${match.externalId}:`, err);
-      console.log(`   ⏭️ Skipping to next...\n`);
+        // Save to DB immediately
+        await prisma.summary.create({
+          data: {
+            matchId: match.id,
+            headline: headline,
+            content: roast,
+            aiModel: "gemini-2.0-flash-lite",
+          },
+        });
+
+        console.log(`   ✨ Success! Saved: "${headline}"\n`);
+        successCount++;
+        break; // Exit retry loop on success
+      } catch (err: any) {
+        attempts++;
+        const isRateLimit = err.status === 429 || err.message?.includes("429") || err.message?.includes("Quota exceeded");
+        
+        if (isRateLimit && attempts < MAX_ATTEMPTS) {
+          const delay = Math.min(baseDelay * Math.pow(2, attempts - 1), 60000);
+          console.warn(`   ⚠️ Rate limit hit. Retrying in ${delay / 1000}s... (Attempt ${attempts}/${MAX_ATTEMPTS})`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        } else {
+          console.error(`   ❌ Failed to generate roast for ${match.externalId}:`, err.message || err);
+          console.log(`   ⏭️ Skipping to next...\n`);
+          break; // Exit retry loop on fatal error
+        }
+      }
     }
   }
 
