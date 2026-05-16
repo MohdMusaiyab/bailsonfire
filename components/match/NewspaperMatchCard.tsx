@@ -43,7 +43,7 @@ export function NewspaperMatchCard({
   const awayShort = getTeamShortName(match.awayTeam);
   const cleanScore = shortenTeamNamesInSummary(match.scoreSummary);
 
-  const dateLabel = match.matchDate.toLocaleDateString("en-IN", {
+  const dateLabel = new Date(match.matchDate).toLocaleDateString("en-IN", {
     timeZone: "Asia/Kolkata",
     day: "numeric",
     month: "short",
@@ -58,7 +58,7 @@ export function NewspaperMatchCard({
       : match.summary.content
     : null;
 
-  const matchYear = match.matchDate.getFullYear();
+  const matchYear = new Date(match.matchDate).getFullYear();
   const isHistorical = matchYear < 2026;
 
   const winnerNormalized = match.winner

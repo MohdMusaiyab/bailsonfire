@@ -19,6 +19,14 @@ import { CommentsSection } from '@/components/match/CommentsSection';
 import { ShareButton } from '@/components/match/ShareButton';
 import { env } from '@/lib/env';
 
+// Cache strategy (set inside matchDetail.ts via unstable_cache):
+//   - Match has NO roast yet   → 5-min TTL  (picks up roast within 5 min after addroast.ts runs)
+//   - Match HAS a roast        → 24-hr TTL  (roast never changes; avoids repeated DB hits)
+//   - Interaction counts       → 60-s TTL   (busted on-demand via revalidateTag on every action)
+//   - User reaction state      → never cached (always fresh per session)
+// This route-level revalidate acts as a safety net for edge cases.
+export const revalidate = 60;
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface PageProps {

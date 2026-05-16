@@ -12,7 +12,7 @@ interface HeroMatch {
   homeTeam: string;
   awayTeam: string;
   scoreSummary?: string;
-  matchDate?: Date;
+  matchDate?: Date | string; // string after unstable_cache JSON deserialization
   venue?: string;
   summaries: {
     id: string;
@@ -139,7 +139,13 @@ const NewspaperHero = ({ data }: NewspaperHeroProps) => {
                   <span>📍 {latestMatch.venue || "Unknown Venue"}</span>
                   <span>
                     📅{" "}
-                    {latestMatch.matchDate?.toLocaleDateString() || "Date TBD"}
+                    {latestMatch.matchDate
+                      ? new Date(latestMatch.matchDate).toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })
+                      : "Date TBD"}
                   </span>
                   {latestMatch.scoreSummary && (
                     <span>
@@ -162,7 +168,7 @@ const NewspaperHero = ({ data }: NewspaperHeroProps) => {
                   />
                 </Link>
                 <Link
-                  href="/matches"
+                  href="/matches/2026"
                   className="inline-flex items-center gap-3 border-2 border-[#2C2B28] px-8 py-4 text-sm sm:text-base font-mono font-bold uppercase tracking-[0.2em] text-[#2C2B28] hover:bg-[#2C2B28] hover:text-[#F9F6EF] transition-all"
                 >
                   Browse Archives

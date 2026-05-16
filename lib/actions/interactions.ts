@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -71,7 +71,12 @@ export default async function toggleReaction(
     // Re-count total reactions after mutation
     const newCount = await prisma.reaction.count({ where: { matchId } });
 
-    revalidatePath(`/match/[externalId]`, "page");
+    // Bust match interaction counts (this page's comment/like counts)
+    revalidateTag(`match-interactions-${matchId}`, 'max');
+    // Bust home page cards so reaction counts update there too
+    revalidateTag('matches-home', 'max');
+    // Bust Wall of Shame — a new reaction could change the most-liked match
+    revalidateTag('wall-of-shame', 'max');
 
     return { success: true, reacted, newType, newCount };
   } catch {
@@ -116,7 +121,9 @@ export async function postComment(
     await prisma.comment.create({
       data: { matchId, userId: session.user.id, content: trimmed },
     });
-    revalidatePath(`/match/[externalId]`, "page");
+    // Bust match interaction counts + home page comment counts
+    revalidateTag(`match-interactions-${matchId}`, 'max');
+    revalidateTag('matches-home', 'max');
     return { success: true };
   } catch {
     return { error: "db_error" };
@@ -150,7 +157,9 @@ export async function deleteComment(commentId: string): Promise<DeleteResult> {
     if (comment.userId !== session.user.id) return { error: "unauthorized" };
 
     await prisma.comment.delete({ where: { id: commentId } });
-    revalidatePath(`/match/[externalId]`, "page");
+    // Bust interaction counts + home page comment counts
+    revalidateTag(`match-interactions-${comment.matchId}`, 'max');
+    revalidateTag('matches-home', 'max');
     return { success: true };
   } catch {
     return { error: "db_error" };

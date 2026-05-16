@@ -2,6 +2,9 @@ import React from "react";
 import { SeasonalSidebar } from "@/components/general/Sidebar";
 import { getAvailableSeasons } from "@/lib/actions/matches";
 
+// Layout revalidation aligns with the page's 1-hour ISR cadence.
+export const revalidate = 3600;
+
 interface LayoutProps {
   children: React.ReactNode;
 }

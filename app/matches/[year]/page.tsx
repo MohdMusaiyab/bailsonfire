@@ -7,6 +7,10 @@ import { TeamFilter } from "@/components/matches/TeamFilter";
 import { InfiniteMatchGrid } from "@/components/matches/InfiniteMatchGrid";
 import { TEAM_DETAILS } from "@/lib/constants/teams";
 
+// ISR: Roasts are added via script every ~5-6 hours.
+// 1-hour revalidation ensures users see updated match cards within the hour.
+export const revalidate = 3600;
+
 interface PageProps {
   params: Promise<{ year: string }>;
   searchParams: Promise<{ team?: string | string[] }>;

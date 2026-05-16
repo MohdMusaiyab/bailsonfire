@@ -47,7 +47,7 @@ export function MatchCard({
   match: RecentMatchCard;
   index: number;
 }) {
-  const dateLabel = match.matchDate.toLocaleDateString("en-IN", {
+  const dateLabel = new Date(match.matchDate).toLocaleDateString("en-IN", {
     timeZone: "Asia/Kolkata",
     day: "numeric",
     month: "short",
@@ -66,7 +66,7 @@ export function MatchCard({
   // Normalize the score summary to use short names for compactness and uniformity
   const cleanScoreSummary = shortenTeamNamesInSummary(match.scoreSummary);
 
-  const matchYear = match.matchDate.getFullYear();
+  const matchYear = new Date(match.matchDate).getFullYear();
   const isHistorical = matchYear < 2026;
 
   return (
@@ -110,7 +110,7 @@ export function MatchCard({
 
           <time
             className="block mt-4 text-[0.65rem] font-mono font-bold tracking-[0.18em] uppercase text-[#6B5E4A]"
-            dateTime={match.matchDate.toISOString()}
+            dateTime={new Date(match.matchDate).toISOString()}
           >
             {dateLabel}
           </time>

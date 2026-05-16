@@ -25,7 +25,7 @@ export async function WallOfShame() {
   const match = await getWallOfShame();
 
   const dateLabel = match
-    ? match.matchDate.toLocaleDateString("en-IN", {
+    ? new Date(match.matchDate).toLocaleDateString("en-IN", {
         timeZone: "Asia/Kolkata",
         day: "numeric",
         month: "short",
