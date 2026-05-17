@@ -182,8 +182,7 @@ const NewspaperHero = ({ data }: NewspaperHeroProps) => {
                 <span className="font-bold uppercase tracking-wider text-[#2C2B28]">
                   Bails on Fire
                 </span>{" "}
-                – Just an algorithm pretending it has a sense of humour. Results
-                may vary
+                – Just a LLM pretending it has a sense of humour. Results may vary
               </p>
             </div>
           </div>

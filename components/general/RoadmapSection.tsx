@@ -1,5 +1,11 @@
 import React from "react";
-import { CircleDot, Image, Flame, Swords, ChartNoAxesCombined } from "lucide-react";
+import {
+  CircleDot,
+  Image,
+  Flame,
+  Swords,
+  ChartNoAxesCombined,
+} from "lucide-react";
 
 interface RoadmapItem {
   icon: React.ReactNode;
@@ -69,7 +75,8 @@ export function RoadmapSection() {
                 What&apos;s Next?
               </h2>
               <p className="mt-3 text-sm sm:text-base font-serif italic text-[#3A3126] max-w-md">
-                Features we swear we&apos;ll ship. Probably. No deadlines though.
+                Features we swear we&apos;ll ship. Probably. No deadlines
+                though.
               </p>
             </div>
 
@@ -130,10 +137,7 @@ export function RoadmapSection() {
         {/* ── FOOTER NOTE (vintage, playful) ── */}
         <div className="mt-12 pt-6 border-t border-[#2C2B28]/15 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-[0.7rem] font-mono font-bold uppercase tracking-[0.2em] text-[#3A3126]">
-            ETA: When it&apos;s done. Don&apos;t @ us.
-            <span className="block sm:inline text-[0.6rem] text-[#3A3126]/70 ml-1">
-              *We work on IST (I&apos;m Still Thinking)
-            </span>
+            ETA: When it&apos;s done. Don&apos;t @ me.
           </p>
           <div className="flex items-center gap-3">
             <span className="w-2 h-2 rounded-full bg-[#9B2C2C] animate-pulse" />

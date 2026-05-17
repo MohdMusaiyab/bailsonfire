@@ -14,6 +14,7 @@
 
 import React, { useState, useTransition } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { getComments } from '@/lib/actions/matchDetail';
 import { postComment, deleteComment } from '@/lib/actions/interactions';
 import { type CommentsPage, type CommentItem } from '@/lib/validations/models';
@@ -28,6 +29,7 @@ interface Props {
 }
 
 export function CommentsSection({ matchId, initialPage, currentUserId, currentUserName, isVerified }: Props) {
+  const router = useRouter();
   const [comments, setComments] = useState<CommentItem[]>(initialPage.items);
   const [nextCursor, setNextCursor] = useState<string | null>(initialPage.nextCursor);
   const [commentText, setCommentText] = useState('');
@@ -84,6 +86,7 @@ export function CommentsSection({ matchId, initialPage, currentUserId, currentUs
       setComments((prev) => [optimistic, ...prev]);
       setCommentText('');
       setCharCount(0);
+      router.refresh();
     });
   }
 
@@ -96,6 +99,8 @@ export function CommentsSection({ matchId, initialPage, currentUserId, currentUs
     deleteComment(commentId).then((result) => {
       if ('error' in result) {
         console.error('[CommentsSection] delete failed:', result.error);
+      } else {
+        router.refresh();
       }
       setDeletingIds((s) => { const n = new Set(s); n.delete(commentId); return n; });
     });
@@ -174,7 +179,7 @@ export function CommentsSection({ matchId, initialPage, currentUserId, currentUs
                 disabled={isPosting || commentText.trim().length === 0}
                 className="px-4 py-2 text-[0.65rem] font-mono font-bold uppercase tracking-widest text-[#F9F6EF] bg-[#2C2B28] border-2 border-[#2C2B28] transition-all disabled:opacity-50 disabled:cursor-not-allowed enabled:shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] enabled:hover:shadow-none enabled:hover:translate-x-[2px] enabled:hover:translate-y-[2px]"
               >
-                {isPosting ? 'Submitting…' : 'Submit Letter'}
+                {isPosting ? 'Adding...' : 'Add Comment'}
               </button>
             )}
           </div>
@@ -189,7 +194,7 @@ export function CommentsSection({ matchId, initialPage, currentUserId, currentUs
       {comments.length === 0 ? (
         <div className="py-12 text-center border-y-2 border-dashed border-[#2C2B28]/20">
           <p className="text-sm font-mono font-bold text-[#6B5E4A] uppercase tracking-widest">
-            Inbox empty. Send a letter.
+            No Comments yet. Be the first to post a comment.
           </p>
         </div>
       ) : (
@@ -287,7 +292,9 @@ function CommentRow({
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatTimeAgo(date: Date): string {
+function formatTimeAgo(dateInput: Date | string): string {
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+  if (isNaN(date.getTime())) return 'recently';
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
   if (seconds < 60) return 'just now';
   const minutes = Math.floor(seconds / 60);

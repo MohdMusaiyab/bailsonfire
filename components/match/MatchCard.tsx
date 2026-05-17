@@ -29,9 +29,9 @@ function TeamTag({ name }: { name: string }) {
   const fullName = normalizeTeamName(name);
   const color = teamColor(fullName);
   return (
-    <span className="inline-flex items-center gap-2 text-[0.85rem] font-black font-serif uppercase tracking-tight text-[#2C2B28]">
+    <span className="inline-flex items-center gap-2 text-[0.8rem] font-extrabold font-sans uppercase tracking-tight text-[#2C2B28]">
       <span
-        className="shrink-0 inline-block w-2 h-2 border border-[#2C2B28]"
+        className="shrink-0 inline-block w-2.5 h-2.5 border-2 border-[#2C2B28]"
         style={{ background: color }}
         aria-hidden="true"
       />
@@ -120,7 +120,7 @@ export function MatchCard({
 
         {/* ─── SCORE + VENUE + WINNER ─── */}
         <div className="flex flex-col gap-2.5 mb-5 h-[90px] shrink-0 relative z-10">
-          <p className="text-[0.95rem] font-black font-serif tracking-tight leading-snug text-[#2C2B28] line-clamp-2 uppercase">
+          <p className="text-[0.8rem] font-mono font-extrabold tracking-tight leading-relaxed text-[#2C2B28] line-clamp-2 uppercase">
             {cleanScoreSummary}
           </p>
 

@@ -4,10 +4,27 @@
 // Closing CTA — vintage newspaper back‑page editorial sign‑off.
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import Image from "next/image";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Flame } from "lucide-react";
 
 export function LandingCTA() {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const laughImages = [
+    "/laugh1.gif",
+    "/laugh2.jpg",
+    "/laugh3.jpg",
+    "/laugh4.jpeg",
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % laughImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [laughImages.length]);
+
   return (
     <section
       className="relative py-20 px-5 md:px-8 bg-[#F9F6EF] overflow-hidden"
@@ -44,7 +61,7 @@ export function LandingCTA() {
             >
               Your team lost.
               <br />
-              <span className="text-[#9B2C2C]">What's new?</span>
+              <span className="text-[#9B2C2C]">What&apos;s new?</span>
             </motion.h2>
 
             <motion.p
@@ -89,18 +106,32 @@ export function LandingCTA() {
             </motion.div>
           </div>
 
-          {/* Right: Optional vintage "classifieds" box – minimal, no dark background */}
-          <div className="lg:col-span-4">
-            <div className="border-2 border-[#2C2B28] p-6 bg-[#F3EFE6] shadow-[4px_4px_0_0_rgba(0,0,0,0.05)]">
-              <p className="text-[0.6rem] font-mono font-bold uppercase tracking-[0.2em] text-[#6B5E4A] mb-2">
-                Public Notice
-              </p>
-              <p className="text-sm font-serif italic text-[#3A3126] leading-relaxed">
-                “We promise to never take ourselves seriously. You shouldn't either.”
-              </p>
-              <div className="mt-4 pt-3 border-t border-[#2C2B28]/10 flex items-center justify-between">
-                <span className="text-[0.55rem] font-mono uppercase text-[#6B5E4A]">— The Editor</span>
-                <Flame size={12} className="text-[#9B2C2C]" />
+          {/* Right: Fading laugh reaction slideshow */}
+          <div className="lg:col-span-4 flex justify-center lg:justify-end">
+            <div className="border-2 border-[#2C2B28] p-4 bg-[#F3EFE6] shadow-[6px_6px_0_0_#2C2B28] w-full max-w-[280px] aspect-square overflow-hidden flex flex-col justify-between">
+              <div className="text-[0.6rem] font-mono font-bold uppercase tracking-[0.2em] text-[#6B5E4A] border-b border-[#2C2B28]/10 pb-2 mb-3 flex justify-between items-center z-10">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#9B2C2C] animate-ping" />
+              </div>
+              <div className="relative flex-grow w-full overflow-hidden border border-[#2C2B28]/25 bg-[#2C2B28]/5 min-h-[140px]">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentImageIndex}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="absolute inset-0 w-full h-full"
+                  >
+                    <Image
+                      src={laughImages[currentImageIndex]}
+                      alt="Cricket laugh reaction"
+                      fill
+                      sizes="280px"
+                      className="object-cover grayscale hover:grayscale-0 transition-all duration-300"
+                      priority
+                    />
+                  </motion.div>
+                </AnimatePresence>
               </div>
             </div>
           </div>

@@ -17,7 +17,7 @@ export function Footer() {
               Bails on Fire
             </h2>
             <p className="text-[0.65rem] font-mono font-bold uppercase tracking-[0.2em] text-[#6B5E4A] mb-1.5">
-              © {new Date().getFullYear()} · Independent Editorial Project
+              © {new Date().getFullYear()}
             </p>
             <p className="text-[0.65rem] font-mono font-bold uppercase tracking-[0.2em] text-[#6B5E4A]/70">
               Made with insomnia & lack of consistency

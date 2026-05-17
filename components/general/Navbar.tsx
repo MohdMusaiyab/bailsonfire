@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { auth } from "@/auth";
 import { UserNav } from "./UserNav";
 
@@ -12,9 +13,16 @@ export async function Navbar() {
 
       <div className="container relative z-10 mx-auto px-6 md:px-10 h-20 flex items-center justify-between">
         {/* LOGO / BRANDING */}
-        <Link href="/" className="flex items-center gap-4 group">
-          <div className="px-3 py-1.5 bg-[#2C2B28] text-[#F9F6EF] font-serif text-2xl leading-none shadow-[3px_3px_0_0_rgba(0,0,0,0.2)] group-hover:shadow-none group-hover:translate-x-[2px] group-hover:translate-y-[2px] transition-all">
-            B
+        <Link href="/" className="flex items-center gap-3 group">
+          <div className="relative w-10 h-10 overflow-hidden bg-[#2C2B28] border border-[#2C2B28] shadow-[3px_3px_0_0_rgba(0,0,0,0.2)] group-hover:shadow-none group-hover:translate-x-[2px] group-hover:translate-y-[2px] transition-all flex items-center justify-center">
+            <Image
+              src="/logo.png"
+              alt="Bails on Fire Logo"
+              width={40}
+              height={40}
+              className="object-cover scale-110"
+              priority
+            />
           </div>
           <span className="font-serif font-black tracking-tighter text-2xl text-[#2C2B28] leading-none uppercase mt-1">
             Bails on Fire

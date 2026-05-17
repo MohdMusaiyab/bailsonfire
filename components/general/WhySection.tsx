@@ -16,19 +16,19 @@ const REASONS: Reason[] = [
   {
     icon: <Bot size={20} />,
     title: "AI trying to be funny",
-    body: "We fed Gemini every IPL meltdown. It learned sarcasm from Reddit. The results are either genius or a war crime.",
+    body: "I fed Gemini every IPL meltdown. It learned sarcasm from Reddit. The results are either genius or a war crime.",
     footnote: "No AI was harmed. But several API keys cried.",
   },
   {
     icon: <Flame size={20} />,
     title: "Nobody asked for this",
-    body: "Zero market research. Zero demand. Just a sleep‑deprived dev who wanted to roast Kohli's 'intent' legally.",
+    body: "Zero market research. Zero demand. Just a sleep‑deprived dev who wanted to use some API keys",
     footnote: "This is what burnout looks like.",
   },
   {
     icon: <MessageCircleWarning size={20} />,
     title: "Commentary is NPC energy",
-    body: "“Great intent” – bro edged to slip. We replace platitudes with pyrotechnics. Finally, someone with a pulse.",
+    body: "“Great intent” – bro edged to slip. We replace platitudes with pyrotechnics. IDK What that means",
     footnote: "Main character energy only.",
   },
   {
@@ -76,7 +76,7 @@ export function WhySection() {
                 Why Bails on Fire?
               </h2>
               <p className="mt-3 text-sm sm:text-base font-serif italic text-[#3A3126] max-w-lg">
-                No one asked for this. We built it anyway. Here&apos;s the story
+                No one asked for this. U built it anyway. Here&apos;s the story
                 you&apos;ll probably skip.
               </p>
             </div>
