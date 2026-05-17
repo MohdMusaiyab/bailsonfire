@@ -31,14 +31,6 @@ export const metadata: Metadata = {
     description: "The most brutally honest, AI-powered satirical newspaper for IPL collapses and masterclasses in middle-order failures.",
     url: "/",
     siteName: "Bails on Fire",
-    images: [
-      {
-        url: "/og.png",
-        width: 1200,
-        height: 630,
-        alt: "Bails on Fire - Sarcastic IPL Broadsheet Newspaper Logo and Concept",
-      },
-    ],
     locale: "en_US",
     type: "website",
   },
@@ -46,7 +38,6 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Bails on Fire | Sarcastic IPL Broadsheet Newspaper",
     description: "The most brutally honest, AI-powered satirical newspaper for IPL collapses and masterclasses in middle-order failures.",
-    images: ["/og.png"],
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_VERIFCATION,
