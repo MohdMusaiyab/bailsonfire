@@ -66,34 +66,16 @@ export function MatchCard({
   // Normalize the score summary to use short names for compactness and uniformity
   const cleanScoreSummary = shortenTeamNamesInSummary(match.scoreSummary);
 
-  const matchYear = new Date(match.matchDate).getFullYear();
-  const isHistorical = matchYear < 2026;
-
   return (
     <article
       className="group relative flex flex-col w-full h-full animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both"
       style={{ animationDelay: staggerDelay }}
     >
       <Link
-        href={isHistorical ? "#" : `/match/${match.externalId}`}
-        className={`flex flex-col flex-1 p-6 bg-[#F9F6EF] border-2 border-[#2C2B28] shadow-[5px_5px_0_0_rgba(0,0,0,0.2)] transition-all duration-300 ease-out ${
-          isHistorical
-            ? "cursor-default"
-            : "hover:-translate-y-[2px] hover:-translate-x-[2px] hover:shadow-[7px_7px_0_0_rgba(0,0,0,0.2)] cursor-pointer"
-        } no-underline relative`}
+        href={`/match/${match.externalId}`}
+        className="flex flex-col flex-1 p-6 bg-[#F9F6EF] border-2 border-[#2C2B28] shadow-[5px_5px_0_0_rgba(0,0,0,0.2)] transition-all duration-300 ease-out hover:-translate-y-[2px] hover:-translate-x-[2px] hover:shadow-[7px_7px_0_0_rgba(0,0,0,0.2)] cursor-pointer no-underline relative"
       >
         <div className="absolute inset-0 pointer-events-none opacity-20 bg-[url('https://www.transparenttextures.com/patterns/old-paper.png')] mix-blend-multiply" aria-hidden="true" />
-        {/* ─── Blur Overlay for Historical Seasons ─── */}
-        {isHistorical && (
-          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 bg-[#F9F6EF]/80 backdrop-blur-[2px]">
-            <div className="bg-[#9B2C2C] text-[#F9F6EF] px-4 py-2 border-2 border-[#2C2B28] text-[0.65rem] font-mono font-bold uppercase tracking-[0.2em] shadow-[4px_4px_0_0_rgba(0,0,0,0.3)]">
-              Roasts Generating...
-            </div>
-            <p className="mt-4 text-[0.65rem] font-bold font-mono text-[#2C2B28] uppercase tracking-widest text-center bg-[#F9F6EF] px-2 border border-[#2C2B28]">
-              Available soon for {matchYear}
-            </p>
-          </div>
-        )}
 
         {/* ─── HEADER (Teams + Date) ─── */}
         <header className="mb-4 h-[100px] flex flex-col justify-between shrink-0 relative z-10">
@@ -186,7 +168,7 @@ export function MatchCard({
           </div>
 
           <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[0.65rem] font-mono font-bold tracking-widest uppercase text-[#2C2B28] bg-[#F9F6EF] border-2 border-[#2C2B28] shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] group-hover:shadow-none group-hover:translate-x-[2px] group-hover:translate-y-[2px] group-hover:bg-[#2C2B28] group-hover:text-[#F9F6EF] transition-all">
-            {isHistorical ? "Archived" : "Read"}
+            Read
           </div>
         </footer>
       </Link>

@@ -39,7 +39,7 @@ export async function Navbar() {
               Archives
             </Link>
             <Link
-              href="#wall-of-shame"
+              href="/#wall-of-shame"
               className="text-[0.7rem] font-mono font-bold uppercase tracking-widest text-[#3A3126] hover:text-[#5A3A2A] hover:underline decoration-[#9B2C2C] decoration-2 underline-offset-4 transition-colors"
             >
               Hall of Shame

@@ -58,9 +58,6 @@ export function NewspaperMatchCard({
       : match.summary.content
     : null;
 
-  const matchYear = new Date(match.matchDate).getFullYear();
-  const isHistorical = matchYear < 2026;
-
   const winnerNormalized = match.winner
     ? normalizeTeamName(match.winner)
     : null;
@@ -76,18 +73,6 @@ export function NewspaperMatchCard({
           : ""
       } ${index === 0 ? "" : "md:pl-8"} ${isLast ? "" : "md:pr-8"} pb-10 md:pb-0`}
     >
-      {/* Historical overlay – vintage styled */}
-      {isHistorical && (
-        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#F9F6EF]/80 backdrop-blur-[2px]">
-          <div className="bg-[#2C2B28] text-[#F9F6EF] px-4 py-2 text-[0.6rem] font-mono font-bold uppercase tracking-[0.2em] shadow-[2px_2px_0_0_rgba(0,0,0,0.2)]">
-            Under Investigation
-          </div>
-          <p className="mt-3 text-[0.6rem] font-mono text-[#6B5E4A] uppercase tracking-widest">
-            Roasts from {matchYear} — Coming Soon
-          </p>
-        </div>
-      )}
-
       {/* Date only – no label badge */}
       <div className="mb-4">
         <span className="text-[0.55rem] font-mono font-bold uppercase tracking-widest text-[#6B5E4A]">
@@ -124,8 +109,8 @@ export function NewspaperMatchCard({
 
       {/* Headline */}
       <Link
-        href={isHistorical ? "#" : `/match/${match.externalId}`}
-        className={`block no-underline ${isHistorical ? "cursor-default" : ""}`}
+        href={`/match/${match.externalId}`}
+        className="block no-underline"
       >
         <h3 className="text-2xl md:text-[1.65rem] font-serif font-bold leading-[1.2] text-[#2C2B28] mb-3 group-hover:text-[#5A3A2A] transition-colors uppercase tracking-tight">
           {headline}
@@ -170,18 +155,16 @@ export function NewspaperMatchCard({
           </span>
         </div>
 
-        {!isHistorical && (
-          <Link
-            href={`/match/${match.externalId}`}
-            className="group/cta inline-flex items-center gap-1.5 text-[0.6rem] font-mono font-bold uppercase tracking-[0.15em] text-[#2C2B28] hover:text-[#5A3A2A] transition-colors"
-          >
-            Read Full Roast
-            <ArrowRight
-              size={12}
-              className="transition-transform group-hover/cta:translate-x-0.5"
-            />
-          </Link>
-        )}
+        <Link
+          href={`/match/${match.externalId}`}
+          className="group/cta inline-flex items-center gap-1.5 text-[0.6rem] font-mono font-bold uppercase tracking-[0.15em] text-[#2C2B28] hover:text-[#5A3A2A] transition-colors"
+        >
+          Read Full Roast
+          <ArrowRight
+            size={12}
+            className="transition-transform group-hover/cta:translate-x-0.5"
+          />
+        </Link>
       </div>
     </motion.article>
   );
