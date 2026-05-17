@@ -24,7 +24,7 @@ export function ShareButton({ title, text, url }: Props) {
         return;
       } catch (err) {
         // User cancelled or error, fall back to copy
-        console.log("Share failed or cancelled", err);
+        // console.log("Share failed or cancelled", err);
       }
     }
 

@@ -9,12 +9,12 @@ const resend = new Resend(env.RESEND_API_KEY);
 export async function sendVerificationEmail(email: string, otp: string) {
   try {
     const { data, error } = await resend.emails.send({
-      from: "BailsofFire <onboarding@resend.dev>", // Replace with your domain once verified on Resend
+      from: "BailsOnFire <noreply@bailsonfire.itsmusaiyab.in>",
       to: [email],
-      subject: "Verify your email - BailsofFire",
+      subject: "Verify your email - BailsOnFire",
       html: `
         <div style="font-family: sans-serif; padding: 20px; color: #333;">
-          <h2 style="color: #2563eb;">Welcome to BailsofFire 🏏</h2>
+          <h2 style="color: #2563eb;">Welcome to BailsOnFire 🏏</h2>
           <p>You're one step away from joining the roasted fun! Use the 6-digit code below to verify your email address:</p>
           <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
             ${otp}
