@@ -12,16 +12,30 @@ export function Footer() {
       <div className="relative z-10 max-w-6xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-end">
           {/* Brand & Copyright */}
-          <div>
+          <div className="flex flex-col items-start">
             <h2 className="text-2xl md:text-3xl font-serif font-bold tracking-tighter text-[#2C2B28] mb-3 uppercase">
               Bails on Fire
             </h2>
             <p className="text-[0.65rem] font-mono font-bold uppercase tracking-[0.2em] text-[#6B5E4A] mb-1.5">
               © {new Date().getFullYear()}
             </p>
-            <p className="text-[0.65rem] font-mono font-bold uppercase tracking-[0.2em] text-[#6B5E4A]/70">
+            <p className="text-[0.65rem] font-mono font-bold uppercase tracking-[0.2em] text-[#6B5E4A]/70 mb-5">
               Made with insomnia & lack of consistency
             </p>
+            
+            {/* Peerlist Embed Badge */}
+            <a 
+              href="https://peerlist.io/musaiyab/project/bailsonfire" 
+              target="_blank" 
+              rel="noreferrer"
+              className="inline-block hover:opacity-80 active:scale-[0.98] transition-all"
+            >
+              <img
+                src="https://peerlist.io/api/v1/projects/embed/PRJHBARJK69GEMBRLCEGJAAJQGRDEG?showUpvote=false&theme=light"
+                alt="BailsOnFire"
+                style={{ width: "auto", height: "48px" }}
+              />
+            </a>
           </div>
 
           {/* Legal Disclaimer – vintage tone */}
