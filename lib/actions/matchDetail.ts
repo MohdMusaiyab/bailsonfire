@@ -9,6 +9,8 @@ import {
   type ReactionType,
 } from '@/lib/validations/models';
 
+import { shortenTeamNamesInSummary } from '@/lib/utils/match';
+
 const COMMENTS_PER_PAGE = 10;
 
 // ─── Match Static Data (permanent cache) ──────────────────────────────────────
@@ -166,7 +168,7 @@ export async function getMatchDetail(
     externalId: staticData.externalId,
     homeTeam: staticData.homeTeam,
     awayTeam: staticData.awayTeam,
-    scoreSummary: staticData.scoreSummary,
+    scoreSummary: shortenTeamNamesInSummary(staticData.scoreSummary),
     // Reconstruct real Date — unstable_cache deserializes Date fields as strings
     matchDate: new Date(staticData.matchDate),
     venue: staticData.venue,

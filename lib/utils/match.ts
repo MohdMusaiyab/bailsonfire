@@ -28,6 +28,7 @@ const KNOWN_TEAM_SHORTS: Record<string, string> = {
   "Delhi Daredevils": "DC", // Folded into Delhi Capitals
   "Kings XI Punjab": "PBKS", // Folded into Punjab Kings
   "Royal Challengers Bangalore": "RCB",
+  "Royal Challengers Bangalore Women": "RCB",
   "Deccan Chargers": "DCG",
   "Pune Warriors": "PWI",
   "Kochi Tuskers Kerala": "KTK",
@@ -42,6 +43,11 @@ const KNOWN_TEAM_SHORTS: Record<string, string> = {
 export function getTeamShortName(teamName: string): string {
   if (!teamName) return "UNK";
   const upper = teamName.toUpperCase().trim();
+
+  // Intercept and prevent WPL suffix abbreviations from reaching UI
+  if (upper === "RCBW") return "RCB";
+  if (upper === "MIW") return "MI";
+  if (upper === "DCW") return "DC";
 
   // Check if it's already a full name in our map
   for (const [full, short] of Object.entries(KNOWN_TEAM_SHORTS)) {
@@ -90,6 +96,9 @@ export function normalizeTeamName(name: string): string {
     "GL": "Gujarat Lions",
     "PWI": "Pune Warriors",
     "KTK": "Kochi Tuskers Kerala",
+    "RCBW": "Royal Challengers Bengaluru",
+    "MIW": "Mumbai Indians",
+    "DCW": "Delhi Capitals",
   };
 
   if (commonVariants[upper]) return commonVariants[upper];

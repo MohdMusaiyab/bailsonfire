@@ -1,45 +1,19 @@
 import { ImageResponse } from 'next/og';
 import { getMatchDetail } from '@/lib/actions/matchDetail';
 
-// ─── Config ──────────────────────────────────────────────────────────────────
+// Prisma and other DB actions require Node.js runtime
 export const runtime = 'nodejs';
-export const alt = 'IPL Match Roast Broadsheet Card';
-export const size = {
-  width: 1200,
-  height: 630,
-};
-export const contentType = 'image/png';
+export const dynamic = 'force-dynamic';
 
-// ─── Image Generation ────────────────────────────────────────────────────────
-export default async function Image({ params }: { params: { externalId: string } }) {
-  const { externalId } = params;
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ externalId: string }> }
+) {
+  const { externalId } = await params;
   const match = await getMatchDetail(externalId);
 
   if (!match) {
-    return new ImageResponse(
-      (
-        <div
-          style={{
-            fontSize: 96,
-            background: '#FCFBF7',
-            color: '#2C2B28',
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontFamily: 'serif',
-            border: '16px double #2C2B28',
-          }}
-        >
-          Match Not Found
-        </div>
-      ),
-      {
-        width: 2400,
-        height: 1260,
-      }
-    );
+    return new Response('Match not found', { status: 404 });
   }
 
   // Load custom fonts for maximum aesthetic premium feeling

@@ -22,6 +22,7 @@ import { unstable_cache } from 'next/cache';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { type RecentMatchCard, type MatchesPage } from '@/lib/validations/models';
+import { shortenTeamNamesInSummary } from '@/lib/utils/match';
 
 // ─── Cache TTL constants ───────────────────────────────────────────────────────
 
@@ -58,7 +59,7 @@ function mapMatchRow(row: {
     externalId: row.externalId,
     homeTeam: row.homeTeam,
     awayTeam: row.awayTeam,
-    scoreSummary: row.scoreSummary,
+    scoreSummary: shortenTeamNamesInSummary(row.scoreSummary),
     // Always reconstruct a real Date — unstable_cache serializes Date → string
     matchDate: new Date(row.matchDate),
     venue: row.venue,
@@ -368,8 +369,16 @@ export const getNewspaperHeroData = unstable_cache(
     const totalMatches = await prisma.match.count();
 
     return {
-      latestMatch,
-      breakingNews,
+      latestMatch: latestMatch
+        ? {
+            ...latestMatch,
+            scoreSummary: shortenTeamNamesInSummary(latestMatch.scoreSummary),
+          }
+        : null,
+      breakingNews: breakingNews.map((n) => ({
+        ...n,
+        scoreSummary: shortenTeamNamesInSummary(n.scoreSummary),
+      })),
       trendingScandals,
       totalMatches,
     };

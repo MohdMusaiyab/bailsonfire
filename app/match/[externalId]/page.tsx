@@ -217,6 +217,7 @@ export default async function MatchRoastPage({ params }: PageProps) {
               title={`${match.homeTeam} vs ${match.awayTeam} Roast`}
               text={`Check out this brutal AI roast of the ${match.homeTeam} vs ${match.awayTeam} match on Bails On Fire!`}
               url={shareUrl}
+              externalId={externalId}
             />
           </div>
         </header>
