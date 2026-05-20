@@ -17,6 +17,7 @@ import { getMatchDetail, getComments } from "@/lib/actions/matchDetail";
 import { ReactionButton } from "@/components/match/ReactionButton";
 import { CommentsSection } from "@/components/match/CommentsSection";
 import { ShareButton } from "@/components/match/ShareButton";
+import { CopyRoastButton } from "@/components/match/CopyRoastButton";
 import { env } from "@/lib/env";
 
 // Cache strategy (set inside matchDetail.ts via unstable_cache):
@@ -248,6 +249,7 @@ export default async function MatchRoastPage({ params }: PageProps) {
                   ) : null,
                 )}
               </div>
+              <CopyRoastButton roastText={match.summary.content} />
             </div>
           ) : (
             <div className="py-12 text-center border-y-2 border-dashed border-[#2C2B28]">
