@@ -1,0 +1,24 @@
+name: Daily Health Check Ping
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+
+  workflow_dispatch:
+
+jobs:
+  ping-health-endpoint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ping Health Check API
+
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://bailsonfire.vercel.app/api/health)
+          if [ "$response" -eq 200 ]; then
+            echo "Health check passed!"
+            exit 0
+          else
+            echo "Health check failed with status code $response"
+            exit 1
+          fi
