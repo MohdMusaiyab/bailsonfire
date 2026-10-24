@@ -51,10 +51,38 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     ...authConfig.callbacks,
+    async signIn({ user, account }) {
+      if (account?.provider === "google" && user.email) {
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email },
+          select: { id: true, emailVerified: true, password: true },
+        });
+
+        // If an unverified account was pre-registered with a password,
+        // Google proves the real owner is logging in.
+        // Wipe the unverified password so any prior unverified password attempt is eliminated,
+        // and mark the email as verified.
+        if (existingUser && !existingUser.emailVerified && existingUser.password) {
+          await prisma.user.update({
+            where: { id: existingUser.id },
+            data: {
+              password: null,
+              emailVerified: new Date(),
+            },
+          });
+        }
+      }
+      return true;
+    },
+
     async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id;
-        token.emailVerified = user.emailVerified || null;
+        const dbUser = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { emailVerified: true },
+        });
+        token.emailVerified = dbUser?.emailVerified || user.emailVerified || null;
       }
 
       if (trigger === "update" && token.id) {
