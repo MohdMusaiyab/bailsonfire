@@ -1,7 +1,8 @@
-name: Daily Health Check Ping
+name: Health Check & Keep-Alive Ping
 
 on:
   schedule:
+    # Runs daily every 24 hours at 00:00 UTC
     - cron: "0 0 * * *"
 
   workflow_dispatch:
@@ -12,13 +13,15 @@ jobs:
 
     steps:
       - name: Ping Health Check API
-
         run: |
-          response=$(curl -s -o /dev/null -w "%{http_code}" https://bailsonfire.vercel.app/api/health)
-          if [ "$response" -eq 200 ]; then
-            echo "Health check passed!"
+          response=$(curl -s -w "\n%{http_code}" https://bailsonfire.vercel.app/api/health)
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          echo "Response Body: $body"
+          if [ "$http_code" -eq 200 ]; then
+            echo "✅ Health check passed with HTTP 200!"
             exit 0
           else
-            echo "Health check failed with status code $response"
+            echo "❌ Health check failed with HTTP $http_code"
             exit 1
           fi

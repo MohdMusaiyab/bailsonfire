@@ -1,26 +1,9 @@
-/**
- * lib/ai/gemini.ts
- *
- * AI client using the official @google/genai SDK.
- *
- * Stage 1 — fetchRecentMatchData:
- *   Uses Google Search grounding to find the latest completed IPL match
- *   within the last 48 hours, relative to the current IST time.
- *   Returns a validated, typed `AIResponseMatchPayload`.
- *
- * Stage 2 — generateMatchRoast:
- *   Takes structured match data and produces a sarcastic roast summary.
- *   Does NOT use search grounding (facts are already known).
- */
+
 
 import { GoogleGenAI, type GenerateContentResponse } from "@google/genai";
 import { type AIResponseMatchPayload } from "../validations/models.js";
 import { TEAM_LORE } from "./teamPoints.js";
 import { buildUniformExternalId } from "../utils/match.js";
-
-// ---------------------------------------------------------------------------
-// Client setup
-// ---------------------------------------------------------------------------
 
 if (!process.env.GEMINI_API_KEY) {
   throw new Error(
@@ -30,27 +13,13 @@ if (!process.env.GEMINI_API_KEY) {
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-// Use a model with Google Search grounding support for data fetch.
-// Roast generation does not need search; use the lighter model to save tokens.
 const FETCH_MODEL = "gemini-2.5-flash";
 const ROAST_MODEL = "gemini-2.5-flash-lite";
-
-// ---------------------------------------------------------------------------
-// Retry configuration
-// ---------------------------------------------------------------------------
 
 const MAX_RETRIES = 3;
 const BASE_RETRY_DELAY_MS = 2000; // doubles each attempt: 2s → 4s → 8s
 
-// ---------------------------------------------------------------------------
-// IST context helper
-// ---------------------------------------------------------------------------
 
-/**
- * Returns a human-readable IST timestamp string injected into the prompt.
- * This is critical: without it, Gemini may use UTC and produce an off-by-one
- * date error near the IST midnight crossover (12:30 AM IST = 7 PM UTC prev day).
- */
 function buildISTContext(): string {
   const now = new Date();
 

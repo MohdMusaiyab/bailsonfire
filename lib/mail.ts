@@ -25,17 +25,13 @@ export async function sendVerificationEmail(email: string, otp: string) {
     });
 
     if (error) {
-      console.error("Resend Error:", error);
-      // Fallback for development: Log the OTP to terminal so the user isn't blocked
-      console.log("-----------------------------------------");
-      console.log(`[DEV] Verification Code for ${email}: ${otp}`);
-      console.log("-----------------------------------------");
-      return { success: true, message: "Email failed to send, but OTP logged to terminal (Testing Mode)." };
+      console.error("[RESEND_ERROR]", error);
+      return { success: false, message: "Failed to send verification email. Try again later." };
     }
 
     return { success: true, data };
   } catch (err) {
-    console.error("Mail Error:", err);
+    console.error("[MAIL_ERROR]", err);
     return {
       success: false,
       message: "An unexpected error occurred while sending email.",

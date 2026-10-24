@@ -7,26 +7,27 @@ import crypto from "crypto";
 import { ApiResponse } from "@/app/api/auth/sign-up/route";
 import { OTPType } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { ResetPasswordSchema } from "@/lib/validations/auth";
 
-/**
- * Handles generating and sending a new OTP.
- * Includes a 60-second cooldown per email/type.
- */
 export async function requestVerificationOTP(providedEmail?: string): Promise<ApiResponse & { resendAvailableAt?: Date }> {
-  console.log("[SERVER ACTION] requestVerificationOTP =========== START ===========");
-  
+  const ip = await getClientIp();
+  const rateLimit = checkRateLimit(`otp:request:${ip}`, 5, 600);
+  if (!rateLimit.success) {
+    return {
+      success: false,
+      message: `Too many verification requests. Please wait ${rateLimit.retryAfter}s before trying again.`,
+    };
+  }
+
   const session = await auth();
   const email = session?.user?.email || providedEmail;
 
   if (!email) {
-    console.log("[SERVER ACTION] No email source found - returning error");
     return { success: false, message: "Email is required to request a verification code." };
   }
 
-  console.log("[SERVER ACTION] Targeting email:", email);
-
   try {
-    // 1. Check for existing OTP cooldown (60 seconds)
     const existingOTP = await prisma.verificationOTP.findUnique({
       where: {
         email_type: { email, type: OTPType.EMAIL_VERIFICATION },
@@ -77,8 +78,15 @@ export async function requestVerificationOTP(providedEmail?: string): Promise<Ap
  * Verifies the 6-digit OTP provided by the user.
  */
 export async function verifyEmailOTP(otp: string, providedEmail?: string): Promise<ApiResponse> {
-  console.log("[SERVER ACTION] verifyEmailOTP =========== START ===========");
-  
+  const ip = await getClientIp();
+  const rateLimit = checkRateLimit(`otp:verify:${ip}`, 10, 600);
+  if (!rateLimit.success) {
+    return {
+      success: false,
+      message: `Too many attempts. Please wait ${rateLimit.retryAfter}s before trying again.`,
+    };
+  }
+
   const session = await auth();
   const email = session?.user?.email || providedEmail;
 
@@ -121,6 +129,15 @@ export async function verifyEmailOTP(otp: string, providedEmail?: string): Promi
  * Handles requesting an OTP for password reset.
  */
 export async function requestPasswordResetOTP(email: string): Promise<ApiResponse & { resendAvailableAt?: Date }> {
+  const ip = await getClientIp();
+  const rateLimit = checkRateLimit(`pwd:request:${ip}`, 5, 900);
+  if (!rateLimit.success) {
+    return {
+      success: false,
+      message: `Too many password reset requests. Please wait ${rateLimit.retryAfter}s before trying again.`,
+    };
+  }
+
   try {
     const user = await prisma.user.findUnique({
       where: { email },
@@ -179,6 +196,15 @@ export async function requestPasswordResetOTP(email: string): Promise<ApiRespons
  * Verifies the password reset OTP without deleting it.
  */
 export async function verifyPasswordResetOTP(email: string, otp: string): Promise<ApiResponse> {
+  const ip = await getClientIp();
+  const rateLimit = checkRateLimit(`pwd:verify:${ip}`, 10, 600);
+  if (!rateLimit.success) {
+    return {
+      success: false,
+      message: `Too many attempts. Please wait ${rateLimit.retryAfter}s before trying again.`,
+    };
+  }
+
   try {
     const record = await prisma.verificationOTP.findUnique({
       where: { email_type: { email, type: OTPType.PASSWORD_RESET } },
@@ -203,6 +229,23 @@ export async function verifyPasswordResetOTP(email: string, otp: string): Promis
  * Executes the final password reset.
  */
 export async function executePasswordReset(email: string, otp: string, password: string): Promise<ApiResponse> {
+  const ip = await getClientIp();
+  const rateLimit = checkRateLimit(`pwd:execute:${ip}`, 5, 600);
+  if (!rateLimit.success) {
+    return {
+      success: false,
+      message: `Too many attempts. Please wait ${rateLimit.retryAfter}s before trying again.`,
+    };
+  }
+
+  const validation = ResetPasswordSchema.safeParse({ email, otp, password });
+  if (!validation.success) {
+    return {
+      success: false,
+      message: validation.error.issues[0]?.message || "Invalid input provided.",
+    };
+  }
+
   try {
     const record = await prisma.verificationOTP.findUnique({
       where: { email_type: { email, type: OTPType.PASSWORD_RESET } },

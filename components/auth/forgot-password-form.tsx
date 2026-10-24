@@ -99,6 +99,10 @@ export function ForgotPasswordForm() {
       setError("Password must be at least 8 characters.");
       return;
     }
+    if (password.length > 72) {
+      setError("Password must be 72 characters or fewer.");
+      return;
+    }
 
     setError(null);
     setSuccess(null);

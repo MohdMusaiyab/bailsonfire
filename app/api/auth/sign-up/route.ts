@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { RegisterSchema } from "@/lib/validations/auth";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
-// A standard API Response Type for consistency
 export type ApiResponse<T = unknown> = {
   success: boolean;
   message: string;
@@ -12,6 +12,18 @@ export type ApiResponse<T = unknown> = {
 
 export async function POST(request: Request) {
   try {
+    const ip = await getClientIp();
+    const rateLimit = checkRateLimit(`auth:signup:${ip}`, 5, 900);
+    if (!rateLimit.success) {
+      return NextResponse.json<ApiResponse>(
+        {
+          success: false,
+          message: `Too many sign-up attempts. Please wait ${rateLimit.retryAfter}s before trying again.`,
+        },
+        { status: 429 },
+      );
+    }
+
     const body = await request.json();
     const validatedData = RegisterSchema.safeParse(body);
 
@@ -40,7 +52,7 @@ export async function POST(request: Request) {
     }
 
     // 2. Hash password and create the user
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 12);
 
     const newUser = await prisma.user.create({
       data: {

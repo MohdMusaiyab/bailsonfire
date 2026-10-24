@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og';
 import { getMatchDetail } from '@/lib/actions/matchDetail';
+import { getShareCardFonts } from '@/lib/fonts';
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 export const runtime = 'nodejs';
@@ -11,8 +12,8 @@ export const size = {
 export const contentType = 'image/png';
 
 // ─── Image Generation ────────────────────────────────────────────────────────
-export default async function Image({ params }: { params: { externalId: string } }) {
-  const { externalId } = params;
+export default async function Image({ params }: { params: Promise<{ externalId: string }> | { externalId: string } }) {
+  const { externalId } = await params;
   const match = await getMatchDetail(externalId);
 
   if (!match) {
@@ -42,50 +43,11 @@ export default async function Image({ params }: { params: { externalId: string }
     );
   }
 
-  // Load custom fonts for maximum aesthetic premium feeling
-  let playfairBold: ArrayBuffer | null = null;
-  let playfairRegular: ArrayBuffer | null = null;
-  let spaceMono: ArrayBuffer | null = null;
-
-  try {
-    const [boldRes, regularRes, monoRes] = await Promise.all([
-      fetch('https://raw.githubusercontent.com/google/fonts/main/ofl/playfairdisplay/static/PlayfairDisplay-Bold.ttf'),
-      fetch('https://raw.githubusercontent.com/google/fonts/main/ofl/playfairdisplay/static/PlayfairDisplay-Regular.ttf'),
-      fetch('https://raw.githubusercontent.com/google/fonts/main/ofl/spacemono/SpaceMono-Regular.ttf'),
-    ]);
-
-    if (boldRes.ok) playfairBold = await boldRes.arrayBuffer();
-    if (regularRes.ok) playfairRegular = await regularRes.arrayBuffer();
-    if (monoRes.ok) spaceMono = await monoRes.arrayBuffer();
-  } catch (err) {
-    console.error('Error fetching dynamic fonts for satori', err);
-  }
-
-  const fonts = [];
-  if (playfairBold) {
-    fonts.push({
-      name: 'Playfair Display',
-      data: playfairBold,
-      weight: 700 as const,
-      style: 'normal' as const,
-    });
-  }
-  if (playfairRegular) {
-    fonts.push({
-      name: 'Playfair Display',
-      data: playfairRegular,
-      weight: 400 as const,
-      style: 'normal' as const,
-    });
-  }
-  if (spaceMono) {
-    fonts.push({
-      name: 'Space Mono',
-      data: spaceMono,
-      weight: 400 as const,
-      style: 'normal' as const,
-    });
-  }
+  // Load custom fonts from local memory/disk
+  const fonts = getShareCardFonts();
+  const playfairBold = fonts.some((f) => f.name === 'Playfair Display' && f.weight === 700);
+  const playfairRegular = fonts.some((f) => f.name === 'Playfair Display' && f.weight === 400);
+  const spaceMono = fonts.some((f) => f.name === 'Space Mono');
 
   // Format date
   const dateLabel = match.matchDate.toLocaleDateString('en-US', {
@@ -439,6 +401,9 @@ export default async function Image({ params }: { params: { externalId: string }
       width: 2400,
       height: 1260,
       fonts: fonts.length > 0 ? fonts : undefined,
+      headers: {
+        'Cache-Control': 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400',
+      },
     }
   );
 }
